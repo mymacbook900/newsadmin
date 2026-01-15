@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Deep Mobile Optimization
+   ========================================================================== */
+
+/* 1. Global Reset & Spacing Reduction */
+@media (max-width: 640px) {
+    :root {
+        --space-4: 0.75rem;
+        --space-6: 1rem;
+        --space-8: 1.5rem;
+    }
+
+    /* Reduce Base Font Size for tighter density */
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        overflow-x: hidden;
+        /* Prevent horizontal scroll loops */
+    }
+}
+
+/* 2. Header & Search Clamping */
+@media (max-width: 640px) {
+    .header {
+        padding: 0 1rem !important;
+        /* Force padding consistency */
+        height: 56px;
+        /* Slightly shorter header */
+    }
+
+    /* Make Header Search Bar fluid but bounded */
+    .header-search {
+        width: 100% !important;
+        max-width: 200px !important;
+        transition: width 0.2s ease;
+    }
+
+    /* When header search is focused, expand it (optional UX improvement) */
+    .header-search:focus-within {
+        max-width: 100% !important;
+        position: absolute;
+        left: 60px;
+        /* Space for menu button */
+        right: 60px;
+        /* Space for profile/bell */
+        z-index: 50;
+        width: auto !important;
+    }
+
+    .user-info {
+        display: none !important;
+    }
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* 3. Layout & Main Content */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem !important;
+        /* Force tighter padding */
+    }
+
+    /* 4. Cards & Panels */
+    .stat-card,
+    .chart-card,
+    .glass-panel {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .page-header {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* 5. Components Override */
+@media (max-width: 480px) {
+
+    /* Modal: Full width on mobile */
+    .modal-container {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        padding: 1rem !important;
+        margin: 0 !important;
+        box-shadow: none;
+    }
+
+    .modal-overlay {
+        padding: 0;
+    }
+
+    /* Tables: Ensure scroll container is confined */
+    .table-container {
+        width: 100vw;
+        margin-left: -1rem;
+        /* Negative margin to bleed to edge */
+        margin-right: -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .table-head,
+    .table-cell {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* 6. Sidebar Fixes */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 85%;
+        /* Don't cover full screen on phones, leave a slip */
+        max-width: 300px;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-overlay {
+        z-index: 49 !important;
+        /* Ensure below sidebar (z-50) */
+    }
+}
+
+/* 7. Utility Classes */
+.hide-on-mobile {
+    display: none !important;
+}
+
+@media (min-width: 1025px) {
+    .hide-on-mobile {
+        display: block !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .hide-on-desktop {
+        display: none !important;
+    }
+}
+
+/* 8. Fix for overly wide tables */
+.table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 9. Dropdown Centering on Mobile (Modal Style) */
+@media (max-width: 640px) {
+    .dropdown-menu {
+        position: fixed !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        min-width: 280px !important;
+        max-width: 90vw !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        z-index: 9999 !important;
+    }
+
+    .dropdown-menu>div {
+        padding: 14px 16px !important;
+        border-bottom: 1px solid #f1f5f9;
+        text-align: center;
+    }
+
+    .dropdown-menu>div:last-child {
+        border-bottom: none;
+    }
+}

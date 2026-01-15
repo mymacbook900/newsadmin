@@ -1,0 +1,535 @@
+.page-header {
+    margin-bottom: var(--space-8);
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    color: var(--slate-900);
+}
+
+.text-secondary {
+    color: var(--slate-500);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+}
+
+.stat-card {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: white;
+}
+
+.stat-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.stat-label {
+    color: var(--slate-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin-top: var(--space-1);
+}
+
+.stat-icon {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+}
+
+.stat-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.875rem;
+}
+
+.stat-change {
+    font-weight: 600;
+}
+
+.chart-card {
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: white;
+    min-height: 380px;
+}
+
+/* Dashboard Layout Grid */
+.dashboard-main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-6);
+}
+
+.dashboard-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-right {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Common Content Card */
+.content-card {
+    padding: var(--space-6);
+    background: white;
+    border-radius: var(--radius-lg);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.card-header h3 {
+    font-size: 1.1rem;
+    color: var(--slate-800);
+}
+
+/* Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: var(--slate-50);
+    border: 1px solid var(--slate-100);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--slate-600);
+}
+
+.action-btn:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-200);
+    color: var(--primary-600);
+    transform: translateY(-2px);
+}
+
+.action-btn span {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Summary Table */
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.summary-table th {
+    text-align: left;
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--slate-100);
+    color: var(--slate-500);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.summary-table td {
+    padding: var(--space-4) var(--space-3);
+    border-bottom: 1px solid var(--slate-50);
+    font-size: 0.9rem;
+}
+
+.title-cell {
+    font-weight: 500;
+    color: var(--slate-800);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-btns {
+    display: flex;
+    gap: var(--space-2);
+    min-width: 80px;
+    /* Ensure buttons don't squeeze too much on mobile */
+    justify-content: flex-end;
+}
+
+.btn-approve,
+.btn-reject {
+    padding: var(--space-1);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-approve {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.btn-reject {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-approve:hover {
+    background: #bbf7d0;
+}
+
+.btn-reject:hover {
+    background: #fecaca;
+}
+
+/* Popular Content List */
+.popular-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.popular-item {
+    display: flex;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--slate-50);
+}
+
+.popular-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--slate-700);
+    margin-bottom: var(--space-1);
+}
+
+.popular-meta {
+    display: flex;
+    gap: var(--space-4);
+    font-size: 0.75rem;
+    color: var(--slate-400);
+}
+
+.popular-meta span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* Time Frame Filter */
+.time-filter {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--slate-200);
+}
+
+.filter-btn {
+    padding: var(--space-1) var(--space-4);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--slate-500);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    color: var(--primary-600);
+    background: var(--primary-50);
+}
+
+.filter-btn.active {
+    background: var(--primary-500);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* Analytics Hub */
+.analytics-hub {
+    background: white;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.hub-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+}
+
+.hub-card {
+    padding: var(--space-4);
+    background: var(--slate-50);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--slate-100);
+    min-width: 0;
+    /* Important for preventing overflow from recharts */
+}
+
+.hub-card h3 {
+    font-size: 0.875rem;
+    color: var(--slate-500);
+    margin-bottom: var(--space-4);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Custom Horizontal Scroll Legend */
+.custom-legend-container {
+    padding-top: var(--space-2);
+    margin-top: auto;
+    width: 100%;
+    overflow: hidden;
+}
+
+.scroll-legend {
+    display: flex;
+    overflow-x: auto;
+    gap: var(--space-4);
+    padding: var(--space-2) 2px;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+}
+
+.scroll-legend::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.legend-box {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.legend-label {
+    font-size: 0.7rem;
+    color: var(--slate-500);
+    font-weight: 500;
+}
+
+@media (max-width: 1200px) {
+    .hub-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-main-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: var(--space-4) !important;
+    }
+
+    .dashboard-left,
+    .dashboard-right {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: var(--space-4);
+    }
+
+    .hub-grid {
+        gap: var(--space-4);
+    }
+
+    .analytics-hub {
+        padding: var(--space-4) !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3);
+    }
+
+    .stat-card {
+        padding: var(--space-3);
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-icon {
+        padding: var(--space-2);
+    }
+
+    .stat-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .content-card {
+        padding: var(--space-4);
+    }
+
+    .time-filter {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .filter-btn {
+        flex: 1;
+        padding: var(--space-2);
+        font-size: 0.75rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .hub-card {
+        padding: var(--space-3);
+    }
+
+    /* Force robust scrolling for tables */
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: var(--space-2);
+        display: block !important;
+    }
+
+    .table-responsive .summary-table {
+        min-width: 650px !important;
+        width: 650px !important;
+    }
+
+    .summary-table th,
+    .summary-table td {
+        padding: var(--space-3) var(--space-5) !important;
+    }
+
+    .summary-table th:last-child,
+    .summary-table td:last-child {
+        padding-right: var(--space-12) !important;
+    }
+
+    .quick-actions-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: var(--space-2) !important;
+        width: 100% !important;
+    }
+
+    .action-btn {
+        padding: var(--space-3) var(--space-1) !important;
+        height: auto;
+        min-height: 80px !important;
+        background: white;
+        border: 1px solid var(--slate-200);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        min-width: 0 !important;
+        /* Critical for grid stability */
+    }
+
+    .action-btn span {
+        font-size: 0.7rem !important;
+        text-align: center;
+        line-height: 1.1;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    /* Popular Content Mobile Fix */
+    .popular-item {
+        gap: var(--space-2);
+        align-items: center;
+    }
+
+    .popular-title {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+/* Red Background for reported news */
+.bg-red-100 {
+    background-color: #fee2e2;
+}
+
+.text-red-600 {
+    color: #dc2626;
+}
+
+.text-link {
+    background: none;
+    border: none;
+    color: var(--primary-500);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.text-link:hover {
+    text-decoration: underline;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

@@ -1,0 +1,68 @@
+.layout-root {
+    min-height: 100vh;
+    background-color: var(--slate-50);
+}
+
+.layout-content {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+    /* Ensure stacking context */
+}
+
+/* Overlay for mobile sidebar */
+.sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .sidebar-overlay.active {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 45;
+        backdrop-filter: blur(2px);
+    }
+
+    /* Ensure content doesn't shift on mobile when sidebar opens */
+    .layout-content.sidebar-expanded {
+        margin-left: 0;
+    }
+}
+
+/* Desktop Sidebar Push */
+@media (min-width: 1025px) {
+    .layout-content.sidebar-expanded {
+        margin-left: 260px !important;
+        width: calc(100% - 260px) !important;
+    }
+}
+
+.main-content {
+    flex: 1;
+    padding: var(--space-6);
+    max-width: 100%;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+    .main-content {
+        padding: var(--space-4);
+        padding-top: calc(64px + var(--space-4));
+        /* Offset for fixed header */
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        padding: var(--space-4);
+    }
+}

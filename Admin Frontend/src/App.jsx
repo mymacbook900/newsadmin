@@ -1,0 +1,51 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardLayout from './layouts/DashboardLayout';
+import Dashboard from './pages/Dashboard';
+import UserManagement from './pages/UserManagement';
+import ReporterManagement from './pages/ReporterManagement';
+import NewsManagement from './pages/NewsManagement';
+import CommunityManagement from './pages/CommunityManagement';
+import ReporterEvents from './pages/ReporterEvents';
+import ActivityManagement from './pages/ActivityManagement';
+import Reports from './pages/Reports';
+import CaseStudyManagement from './pages/CaseStudyManagement';
+import Settings from './pages/Settings';
+import LoginPage from './pages/LoginPage';
+import ForgotPassword from './pages/ForgotPassword';
+
+// Simple Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        <Route path="/" element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
+          <Route path="users" element={<UserManagement />} />
+          <Route path="reporters" element={<ReporterManagement />} />
+          <Route path="news" element={<NewsManagement />} />
+          <Route path="communities" element={<CommunityManagement />} />
+          <Route path="events" element={<ReporterEvents />} />
+          <Route path="activity" element={<ActivityManagement />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="casestudies" element={<CaseStudyManagement />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
