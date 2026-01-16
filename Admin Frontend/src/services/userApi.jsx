@@ -16,8 +16,10 @@ API.interceptors.request.use((req) => {
 // Users API
 export const getUsersAPI = () => API.get("/users");
 export const getUserByIdAPI = (id) => API.get(`/users/${id}`);
+export const getUserActivityAPI = (id) => API.get(`/activity/user/${id}`);
 export const addUserAPI = (data) => API.post("/users/register", data);
-export const updateUserStatusAPI = (id, status) => API.put(`/users/status/${id}`, { status });
+export const updateUserAPI = (id, data) => API.put(`/users/${id}`, data);
+export const updateUserStatusAPI = (id, status, phone) => API.put(`/users/status/${id}`, { status, phone });
 export const deleteUserAPI = (id) => API.delete(`/users/${id}`);
 export const forgotPasswordAPI = (email) => API.post("/users/forgot-password", { email });
 export const verifyOTPAPI = (email, otp) => API.post("/users/verify-otp", { email, otp });
@@ -31,6 +33,8 @@ export const getNewsAPI = () => API.get('/news');
 export const createNewsAPI = (data) => API.post('/news', data);
 export const updateNewsStatusAPI = (id, status) => API.patch(`/news/${id}/status`, { status });
 export const deleteNewsAPI = (id) => API.delete(`/news/${id}`);
+export const likeNewsAPI = (id) => API.patch(`/news/${id}/like`);
+export const shareNewsAPI = (id) => API.patch(`/news/${id}/share`);
 
 // Case Study API
 export const getCaseStudiesAPI = () => API.get('/casestudies');
@@ -46,7 +50,8 @@ export const updateSettingsAPI = (data) => API.put('/settings', data);
 export const getCommunitiesAPI = () => API.get('/communities');
 export const createCommunityAPI = (data) => API.post('/communities', data);
 export const deleteCommunityAPI = (id) => API.delete(`/communities/${id}`);
-export const getPostsAPI = () => API.get('/communities/posts');
+export const getAllPostsAPI = () => API.get('/communities/posts'); // Global Feed
+export const getCommunityPostsAPI = (communityId) => API.get(`/communities/${communityId}/posts`); // Specific Community
 export const createPostAPI = (data) => API.post('/communities/posts', data);
 
 // Events API
@@ -65,5 +70,19 @@ export const getDashboardStatsAPI = () => API.get('/activity/dashboard');
 // Analytics
 export const getDashboardAnalyticsAPI = () => API.get('/analytics/dashboard');
 export const getReportsAnalyticsAPI = () => API.get('/analytics/reports');
+
+// Community Management
+export const sendEmailVerificationAPI = (data) => API.post('/communities/verify-email/send', data);
+export const verifyDomainEmailAPI = (data) => API.post('/communities/verify-email/confirm', data);
+export const inviteAuthorizedPersonAPI = (id, data) => API.post(`/communities/${id}/invite-authorized`, data);
+export const approveAuthorizedInviteAPI = (data) => API.post('/communities/authorized/approve', data);
+export const followCommunityAPI = (id) => API.post(`/communities/${id}/follow`);
+export const unfollowCommunityAPI = (id) => API.delete(`/communities/${id}/follow`);
+export const joinCommunityAPI = (id) => API.post(`/communities/${id}/join`);
+export const approveJoinRequestAPI = (data) => API.post('/communities/request/approve', data);
+export const rejectJoinRequestAPI = (data) => API.post('/communities/request/reject', data);
+export const likePostAPI = (id) => API.patch(`/communities/posts/${id}/like`);
+export const commentOnPostAPI = (id, data) => API.post(`/communities/posts/${id}/comment`, data);
+export const sharePostAPI = (id) => API.patch(`/communities/posts/${id}/share`);
 
 export default API;

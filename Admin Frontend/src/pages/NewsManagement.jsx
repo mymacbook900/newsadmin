@@ -3,8 +3,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { Edit2, Trash2, Eye, CheckCircle, XCircle, Upload } from 'lucide-react';
-import { getNewsAPI, createNewsAPI, updateNewsStatusAPI, deleteNewsAPI } from '../services/userApi';
+import { Plus, Trash2, Eye, CheckCircle, XCircle, Upload, ThumbsUp, Share2, Globe, Clock, User } from 'lucide-react';
+import { getNewsAPI, createNewsAPI, updateNewsStatusAPI, deleteNewsAPI, likeNewsAPI, shareNewsAPI } from '../services/userApi';
 
 export default function NewsManagement() {
     const [news, setNews] = useState([]);
@@ -13,9 +13,10 @@ export default function NewsManagement() {
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [newArticle, setNewArticle] = useState({ title: '', author: 'Admin', category: 'Local', content: '', image: null });
+    const [newArticle, setNewArticle] = useState({ title: '', author: 'Admin', category: 'Local', content: '', image: null, isExternal: false, externalSource: '' });
 
-    const [filterStatus, setFilterStatus] = useState("All");
+    // Filters
+    const [filterVerification, setFilterVerification] = useState("All"); // All, Verified, Pending, Not Verified (External)
     const [filterCategory, setFilterCategory] = useState("All");
 
     useEffect(() => {
@@ -60,6 +61,33 @@ export default function NewsManagement() {
         }
     };
 
+    // Interaction Handlers (For Demo/Testing purposes in Admin)
+    const handleLike = async (id) => {
+        try {
+            await likeNewsAPI(id);
+            // Update local state to reflect change immediately (optimistic UI or refetch)
+            if (selectedArticle && selectedArticle._id === id) {
+                setSelectedArticle(prev => ({ ...prev, likes: prev.likes + 1 }));
+            }
+            fetchNews();
+        } catch (error) {
+            console.error("Like Error:", error);
+        }
+    };
+
+    const handleShare = async (id) => {
+        try {
+            await shareNewsAPI(id);
+            if (selectedArticle && selectedArticle._id === id) {
+                setSelectedArticle(prev => ({ ...prev, shares: prev.shares + 1 }));
+            }
+            fetchNews();
+        } catch (error) {
+            console.error("Share Error:", error);
+        }
+    };
+
+
     const handleImageUpload = (e) => {
         if (e.target.files && e.target.files[0]) {
             setNewArticle({ ...newArticle, image: e.target.files[0] });
@@ -83,7 +111,7 @@ export default function NewsManagement() {
 
             await createNewsAPI(articleData);
             setIsCreateModalOpen(false);
-            setNewArticle({ title: '', author: 'Admin', category: 'Local', content: '', image: null });
+            setNewArticle({ title: '', author: 'Admin', category: 'Local', content: '', image: null, isExternal: false, externalSource: '' });
             fetchNews();
         } catch (error) {
             console.error("Create News Error:", error);
@@ -100,63 +128,59 @@ export default function NewsManagement() {
         });
     };
 
-    // Derived state for multiple filters
+    // Filter Logic
     const filteredArticles = news.filter(article => {
-        const matchesStatus = filterStatus === "All" || article.status === filterStatus;
+        let matchesVerification = true;
+        if (filterVerification === 'Verified') matchesVerification = article.isVerified === true;
+        if (filterVerification === 'Pending') matchesVerification = article.status === 'Pending';
+        if (filterVerification === 'Rejected') matchesVerification = article.status === 'Rejected';
+        if (filterVerification === 'External') matchesVerification = article.isExternal === true;
+
         const matchesCategory = filterCategory === "All" || article.category === filterCategory;
-        return matchesStatus && matchesCategory;
+        return matchesVerification && matchesCategory;
     });
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Published': return 'success';
-            case 'Rejected': return 'danger';
-            case 'Pending': return 'warning';
-            default: return 'default';
-        }
+    const getStatusVariant = (article) => {
+        if (article.status === 'Rejected') return 'danger';
+        if (article.isVerified) return 'success'; // Verified & Published
+        if (article.isExternal) return 'info'; // External usually 'Not Verified' but distinct
+        if (article.status === 'Pending') return 'warning';
+        return 'default';
     };
+
+    const getStatusLabel = (article) => {
+        if (article.status === 'Rejected') return 'Rejected';
+        if (article.isVerified) return 'Verified';
+        if (article.isExternal) return 'External';
+        return article.status; // Pending or Published (unverified)
+    };
+
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                     <h1>News Management</h1>
-                    <p className="text-secondary">Moderate and manage news articles</p>
+                    <p className="text-secondary">Track, verify, and manage news articles</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.875rem', color: '#64748b' }} className="hide-on-mobile">Filters:</span>
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        style={{
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '0.375rem',
-                            border: '1px solid #e2e8f0',
-                            fontSize: '0.875rem',
-                            background: 'white',
-                            cursor: 'pointer',
-                            flex: '1',
-                            minWidth: '140px'
-                        }}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', flexDirection: 'row' }}>
+                    <div><select
+                        value={filterVerification}
+                        onChange={(e) => setFilterVerification(e.target.value)}
+                        className="form-select"
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #e2e8f0' }}
                     >
-                        <option value="All">All Statuses</option>
-                        <option value="Published">Published</option>
-                        <option value="Pending">Pending</option>
+                        <option value="All">All News</option>
+                        <option value="Verified">Verified (Published)</option>
+                        <option value="Pending">Pending Approval</option>
+                        <option value="External">External (Not Verified)</option>
                         <option value="Rejected">Rejected</option>
-                    </select>
-                    <select
+                    </select></div>
+                    <div><select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        style={{
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '0.375rem',
-                            border: '1px solid #e2e8f0',
-                            fontSize: '0.875rem',
-                            background: 'white',
-                            cursor: 'pointer',
-                            flex: '1',
-                            minWidth: '140px'
-                        }}
+                        className="form-select"
+                        style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #e2e8f0' }}
                     >
                         <option value="All">All Categories</option>
                         <option value="Local">Local</option>
@@ -169,15 +193,16 @@ export default function NewsManagement() {
                         <option value="Politics">Politics</option>
                         <option value="Entertainment">Entertainment</option>
                     </select>
+                    </div>
                 </div>
-                <Button onClick={() => setIsCreateModalOpen(true)}>Create Article</Button>
+                <Button onClick={() => setIsCreateModalOpen(true)}><Plus className="w-4 h-4 mr-2" style={{ width: '16px', marginRight: '8px' }} /> Create Article</Button>
             </div>
 
             <Table>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Article</TableHead>
-                        <TableHead>Author</TableHead>
+                        <TableHead>Source</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Date</TableHead>
@@ -201,15 +226,21 @@ export default function NewsManagement() {
                                                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '10px' }}>No Img</div>
                                             )}
                                         </div>
-                                        <div style={{ fontWeight: 500 }}>{item.title}</div>
+                                        <div style={{ fontWeight: 500, maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.title}>{item.title}</div>
                                     </div>
                                 </TableCell>
-                                <TableCell>{item.author}</TableCell>
-                                <TableCell><Badge variant="info">{item.category}</Badge></TableCell>
                                 <TableCell>
-                                    <Badge variant={getStatusColor(item.status)}>{item.status}</Badge>
+                                    {item.isExternal ? (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px' }}><Globe size={12} /> {item.externalSource || "External"}</span>
+                                    ) : (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><User size={12} /> {item.authorName || "Reporter"}</span>
+                                    )}
                                 </TableCell>
-                                <TableCell>{item.date}</TableCell>
+                                <TableCell><Badge variant="outline">{item.category}</Badge></TableCell>
+                                <TableCell>
+                                    <Badge variant={getStatusVariant(item)}>{getStatusLabel(item)}</Badge>
+                                </TableCell>
+                                <TableCell><span style={{ fontSize: '12px', color: '#94a3b8' }}>{new Date(item.date).toLocaleDateString()}</span></TableCell>
                                 <TableCell>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <Button variant="ghost" size="sm" onClick={() => handleOpenModal(item)} title="Review">
@@ -224,9 +255,9 @@ export default function NewsManagement() {
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={6}>
+                            <TableCell colSpan={7}>
                                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                                    {loading ? 'Loading...' : `No articles found for status "${filterStatus}" and category "${filterCategory}"`}
+                                    {loading ? 'Loading...' : `No articles found.`}
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -234,21 +265,26 @@ export default function NewsManagement() {
                 </TableBody>
             </Table>
 
+            {/* DETAILS & VERIFY MODAL */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title="Review Article"
+                title={selectedArticle?.status === 'Pending' ? "Verify Article" : "Article Details"}
                 size="lg"
             >
                 {selectedArticle && (
                     <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                            <Badge variant={getStatusVariant(selectedArticle)}>{getStatusLabel(selectedArticle)}</Badge>
+                            <span style={{ color: '#64748b', fontSize: '12px' }}>{new Date(selectedArticle.date).toLocaleString()}</span>
+                        </div>
+
                         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{selectedArticle.title}</h2>
-                        <div style={{ display: 'flex', gap: '1rem', color: '#64748b', marginBottom: '1.5rem' }}>
-                            <span>By {selectedArticle.author}</span>
+                        <div style={{ display: 'flex', gap: '1rem', color: '#64748b', marginBottom: '1.5rem', fontSize: '14px' }}>
+                            <span>By {selectedArticle.authorName || "Unknown"}</span>
                             <span>•</span>
-                            <span>{new Date(selectedArticle.date).toLocaleDateString()}</span>
-                            <span>•</span>
-                            <Badge variant="info">{selectedArticle.category}</Badge>
+                            <Badge variant="outline">{selectedArticle.category}</Badge>
+                            {selectedArticle.isExternal && <span>• via {selectedArticle.externalSource || 'External API'}</span>}
                         </div>
 
                         {selectedArticle.image && (
@@ -261,22 +297,47 @@ export default function NewsManagement() {
                             </div>
                         )}
 
-                        <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', minHeight: '200px', marginBottom: '1.5rem' }}>
-                            <p>{selectedArticle.content || "No content provided."}</p>
+                        <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', minHeight: '150px', marginBottom: '1.5rem' }}>
+                            <p style={{ whiteSpace: 'pre-wrap' }}>{selectedArticle.content || "No content provided."}</p>
                         </div>
 
-                        <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                            <Button variant="danger" onClick={() => updateStatus(selectedArticle._id, 'Rejected')}>
-                                <XCircle size={18} /> Reject
+                        {/* Interaction Bar */}
+                        <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f1f5f9', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                            <Button size="sm" variant="ghost" onClick={() => handleLike(selectedArticle._id)}>
+                                <ThumbsUp size={16} style={{ marginRight: 5 }} /> {selectedArticle.likes} Likes
                             </Button>
-                            <Button variant="primary" onClick={() => updateStatus(selectedArticle._id, 'Published')}>
-                                <CheckCircle size={18} /> Publish
+                            <Button size="sm" variant="ghost" onClick={() => handleShare(selectedArticle._id)}>
+                                <Share2 size={16} style={{ marginRight: 5 }} /> {selectedArticle.shares} Shares
                             </Button>
+                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', color: '#64748b', fontSize: '14px' }}>
+                                <Eye size={16} style={{ marginRight: 5 }} /> {selectedArticle.views} Views
+                            </div>
+                        </div>
+
+                        {/* Admin Action Bar */}
+                        <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
+                            {selectedArticle.status === 'Pending' && (
+                                <>
+                                    <Button variant="danger" onClick={() => updateStatus(selectedArticle._id, 'Rejected')}>
+                                        <XCircle size={18} style={{ marginRight: 5 }} /> Reject
+                                    </Button>
+                                    <Button variant="success" onClick={() => updateStatus(selectedArticle._id, 'Published')}>
+                                        <CheckCircle size={18} style={{ marginRight: 5 }} /> Verify & Publish
+                                    </Button>
+                                </>
+                            )}
+                            {selectedArticle.status === 'Published' && (
+                                <Button variant="secondary" disabled>
+                                    <CheckCircle size={18} style={{ marginRight: 5 }} /> Verified
+                                </Button>
+                            )}
+                            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Close</Button>
                         </div>
                     </div>
                 )}
             </Modal>
 
+            {/* CREATE MODAL */}
             <Modal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
@@ -308,9 +369,6 @@ export default function NewsManagement() {
                             Choose Cover Image
                             <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
                         </label>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                            Landscape orientation works best (e.g. 1200x800)
-                        </div>
                     </div>
                 </div>
 
@@ -324,19 +382,49 @@ export default function NewsManagement() {
                         onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
                     />
                 </div>
-                <div className="form-group" style={{ marginBottom: '1rem' }}>
-                    <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Category</label>
-                    <select
-                        style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
-                        value={newArticle.category}
-                        onChange={(e) => setNewArticle({ ...newArticle, category: e.target.value })}
-                    >
-                        <option value="Local">Local</option>
-                        <option value="Business">Business</option>
-                        <option value="Lifestyle">Lifestyle</option>
-                        <option value="World">World</option>
-                    </select>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="form-group">
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Category</label>
+                        <select
+                            style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            value={newArticle.category}
+                            onChange={(e) => setNewArticle({ ...newArticle, category: e.target.value })}
+                        >
+                            <option value="Local">Local</option>
+                            <option value="Business">Business</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                            <option value="World">World</option>
+                            <option value="Politics">Politics</option>
+                            <option value="Sports">Sports</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Source Type</label>
+                        <select
+                            style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            value={newArticle.isExternal ? 'External' : 'Internal'}
+                            onChange={(e) => setNewArticle({ ...newArticle, isExternal: e.target.value === 'External' })}
+                        >
+                            <option value="Internal">Internal (Admin/Reporter)</option>
+                            <option value="External">External API/Source</option>
+                        </select>
+                    </div>
                 </div>
+
+                {newArticle.isExternal && (
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                        <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>External Source Name</label>
+                        <input
+                            type="text"
+                            style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            placeholder="e.g. BBC, CNN"
+                            value={newArticle.externalSource}
+                            onChange={(e) => setNewArticle({ ...newArticle, externalSource: e.target.value })}
+                        />
+                    </div>
+                )}
+
                 <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                     <label className="form-label" style={{ display: 'block', marginBottom: '0.5rem' }}>Content</label>
                     <textarea

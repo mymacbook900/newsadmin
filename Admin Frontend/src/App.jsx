@@ -33,8 +33,12 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<Dashboard />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="reporters" element={<ReporterManagement />} />
+          <Route path="users">
+            <Route index element={<Navigate to="all" replace />} />
+            <Route path="all" element={<UserManagement initialRole="All" />} />
+            <Route path="admins" element={<UserManagement initialRole="Admin" />} />
+            <Route path="reporters" element={<UserManagement initialRole="Reporter" />} />
+          </Route>
           <Route path="news" element={<NewsManagement />} />
           <Route path="communities" element={<CommunityManagement />} />
           <Route path="events" element={<ReporterEvents />} />
