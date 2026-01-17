@@ -16,7 +16,7 @@ API.interceptors.request.use((req) => {
 // Users API
 export const getUsersAPI = () => API.get("/users");
 export const getUserByIdAPI = (id) => API.get(`/users/${id}`);
-export const getUserActivityAPI = (id) => API.get(`/activity/user/${id}`);
+export const getUserLogsAPI = (id) => API.get(`/activity/user/${id}`);
 export const addUserAPI = (data) => API.post("/users/register", data);
 export const updateUserAPI = (id, data) => API.put(`/users/${id}`, data);
 export const updateUserStatusAPI = (id, status, phone) => API.put(`/users/status/${id}`, { status, phone });
@@ -66,6 +66,11 @@ export const createReportAPI = (data) => API.post('/moderation', data);
 // Activity & Dashboard
 export const getLogsAPI = () => API.get('/activity/logs');
 export const getDashboardStatsAPI = () => API.get('/activity/dashboard');
+export const getMyActivityAPI = () => API.get('/activity/me');
+
+// Saved Content
+export const getSavedContentAPI = () => API.get('/users/me/saved');
+export const saveContentAPI = (data) => API.post('/users/me/saved', data);
 
 // Analytics
 export const getDashboardAnalyticsAPI = () => API.get('/analytics/dashboard');
@@ -81,8 +86,30 @@ export const unfollowCommunityAPI = (id) => API.delete(`/communities/${id}/follo
 export const joinCommunityAPI = (id) => API.post(`/communities/${id}/join`);
 export const approveJoinRequestAPI = (data) => API.post('/communities/request/approve', data);
 export const rejectJoinRequestAPI = (data) => API.post('/communities/request/reject', data);
+
+export const updateCommunityAPI = (id, data) => API.put(`/communities/${id}`, data);
+export const removeMemberAPI = (communityId, userId) => API.delete(`/communities/${communityId}/members/${userId}`);
+export const deletePostAPI = (postId) => API.delete(`/communities/posts/${postId}`);
+export const deleteCommentAPI = (postId, commentId) => API.delete(`/communities/posts/${postId}/comments/${commentId}`);
 export const likePostAPI = (id) => API.patch(`/communities/posts/${id}/like`);
 export const commentOnPostAPI = (id, data) => API.post(`/communities/posts/${id}/comment`, data);
 export const sharePostAPI = (id) => API.patch(`/communities/posts/${id}/share`);
+
+// Reporter Hub API
+export const getMyNewsAPI = () => API.get('/reporter/my-news');
+export const getReporterStatsAPI = () => API.get('/reporter/stats');
+
+// response interceptor for 401
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("isAdminAuthenticated");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default API;

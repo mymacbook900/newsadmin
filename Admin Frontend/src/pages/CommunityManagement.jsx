@@ -3,15 +3,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { Plus, Users, Settings, MessageSquare, Heart, Share2, Eye, Check, X, Mail, UserPlus, Shield } from 'lucide-react';
+import { Plus, Users, Settings, MessageSquare, Heart, Share2, Eye, Check, X, Mail, UserPlus, Shield, Edit, Trash2 } from 'lucide-react';
 import {
-    getCommunitiesAPI, createCommunityAPI, deleteCommunityAPI,
+    getCommunitiesAPI, createCommunityAPI, deleteCommunityAPI, updateCommunityAPI,
     sendEmailVerificationAPI, verifyDomainEmailAPI,
     inviteAuthorizedPersonAPI, approveAuthorizedInviteAPI,
     approveJoinRequestAPI, rejectJoinRequestAPI,
-    getCommunityPostsAPI, createPostAPI,
-    likePostAPI, commentOnPostAPI, sharePostAPI,
-    getUsersAPI
+    getCommunityPostsAPI, createPostAPI, deletePostAPI,
+    likePostAPI, commentOnPostAPI, sharePostAPI, deleteCommentAPI,
+    getUsersAPI, removeMemberAPI
 } from '../services/userApi';
 
 export default function CommunityManagement() {
@@ -38,6 +38,13 @@ export default function CommunityManagement() {
     const [selectedCommunity, setSelectedCommunity] = useState(null);
     const [detailTab, setDetailTab] = useState('overview');
     const [allUsers, setAllUsers] = useState([]);
+
+    // Edit Community State
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingCommunity, setEditingCommunity] = useState(null);
+
+    // Comment Modal State
+    const [selectedPostForComments, setSelectedPostForComments] = useState(null);
 
     // Post State
     const [posts, setPosts] = useState([]);
@@ -165,8 +172,8 @@ export default function CommunityManagement() {
             closeWizard();
             fetchCommunities();
         } catch (error) {
-            console.error('Invite authorized error:', error);
-            alert('Failed to send invitations');
+            console.error('Invite authorized error details:', error.response?.data || error.message);
+            alert(`Failed to send invitations: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -228,6 +235,41 @@ export default function CommunityManagement() {
         }
     };
 
+    const handleApproveAuthorizedInvite = async (userId, otp) => {
+        try {
+            if (!otp) {
+                alert('Please enter OTP');
+                return;
+            }
+            await approveAuthorizedInviteAPI({
+                communityId: selectedCommunity._id,
+                userId,
+                otp
+            });
+            alert('Invitation approved!');
+            const res = await getCommunitiesAPI();
+            const updated = res.data.find(c => c._id === selectedCommunity._id);
+            setSelectedCommunity(updated);
+            fetchCommunities();
+        } catch (error) {
+            console.error('Approve invite error:', error);
+            alert(`Error: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
+    const handleResendOTP = async (email) => {
+        try {
+            await inviteAuthorizedPersonAPI(selectedCommunity._id, { email });
+            alert('OTP resent successfully');
+            const res = await getCommunitiesAPI();
+            const updated = res.data.find(c => c._id === selectedCommunity._id);
+            setSelectedCommunity(updated);
+        } catch (error) {
+            console.error('Resend OTP error:', error);
+            alert(`Error: ${error.response?.data?.message || error.message}`);
+        }
+    };
+
     // Post Actions
     const handleCreatePost = async () => {
         try {
@@ -240,13 +282,17 @@ export default function CommunityManagement() {
                 return;
             }
 
-            await createPostAPI({
-                communityId: selectedCommunity._id,
-                content: newPost.content,
-                type: newPost.type,
-                authorName: userData?.name || userData?.fullName,
-                userId: userId
-            });
+            const formData = new FormData();
+            formData.append('communityId', selectedCommunity._id);
+            formData.append('content', newPost.content);
+            formData.append('type', newPost.type);
+            formData.append('authorName', userData?.name || userData?.fullName);
+            formData.append('userId', userId);
+            if (newPost.image) {
+                formData.append('image', newPost.image);
+            }
+
+            await createPostAPI(formData);
             setIsCreatePostOpen(false);
             setNewPost({ content: '', type: 'Public', image: null });
             fetchPosts(selectedCommunity._id);
@@ -271,6 +317,58 @@ export default function CommunityManagement() {
             fetchPosts(selectedCommunity._id);
         } catch (error) {
             console.error('Share error:', error);
+        }
+    };
+
+    const handleDeletePost = async (postId) => {
+        if (confirm('Are you sure you want to delete this post?')) {
+            try {
+                await deletePostAPI(postId);
+                fetchPosts(selectedCommunity._id);
+            } catch (error) {
+                console.error('Delete post error:', error);
+            }
+        }
+    };
+
+    const handleUpdateCommunity = async () => {
+        try {
+            await updateCommunityAPI(editingCommunity._id, editingCommunity);
+            setIsEditOpen(false);
+            setEditingCommunity(null);
+            fetchCommunities();
+            alert('Community updated successfully');
+        } catch (error) {
+            console.error('Update community error:', error);
+            alert('Failed to update community');
+        }
+    };
+
+    const handleRemoveMember = async (userId) => {
+        if (confirm('Are you sure you want to remove this member?')) {
+            try {
+                await removeMemberAPI(selectedCommunity._id, userId);
+                const res = await getCommunitiesAPI();
+                const updated = res.data.find(c => c._id === selectedCommunity._id);
+                setSelectedCommunity(updated);
+                fetchCommunities();
+                alert('Member removed');
+            } catch (error) {
+                console.error('Remove member error:', error);
+            }
+        }
+    };
+
+    const handleDeleteComment = async (postId, commentId) => {
+        if (confirm('Are you sure you want to delete this comment?')) {
+            try {
+                const res = await deleteCommentAPI(postId, commentId);
+                // Update local posts state
+                setPosts(posts.map(p => p._id === postId ? res.data : p));
+                alert('Comment deleted');
+            } catch (error) {
+                console.error('Delete comment error:', error);
+            }
         }
     };
 
@@ -373,10 +471,20 @@ export default function CommunityManagement() {
                                     <Button
                                         variant="ghost"
                                         size="sm"
+                                        onClick={() => {
+                                            setEditingCommunity(community);
+                                            setIsEditOpen(true);
+                                        }}
+                                    >
+                                        <Edit size={18} />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => handleDeleteCommunity(community._id)}
                                         style={{ color: 'red' }}
                                     >
-                                        <X size={18} />
+                                        <Trash2 size={18} />
                                     </Button>
                                 </div>
                             </TableCell>
@@ -536,7 +644,7 @@ export default function CommunityManagement() {
                     <div>
                         {/* Tabs */}
                         <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem' }}>
-                            {['overview', 'members', 'posts'].map((tab) => (
+                            {['overview', 'members', 'posts', 'events'].map((tab) => (
                                 <div
                                     key={tab}
                                     onClick={() => setDetailTab(tab)}
@@ -578,11 +686,50 @@ export default function CommunityManagement() {
                                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Followers</div>
                                         <div style={{ fontWeight: 500 }}>{selectedCommunity.followersCount || 0}</div>
                                     </div>
+                                    <div style={{ gridColumn: 'span 2' }}>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Created By</div>
+                                        <div style={{ fontWeight: 500 }}>
+                                            {selectedCommunity.creator?.fullName} ({selectedCommunity.creator?.email})
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ marginTop: '1rem' }}>
                                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>Description</div>
                                     <p>{selectedCommunity.description || 'No description'}</p>
                                 </div>
+
+                                {selectedCommunity.type === 'Multi' && selectedCommunity.pendingAuthorizedPersons?.length > 0 && (
+                                    <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                        <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <Shield size={18} color="#2563eb" /> Pending Authorization Invites
+                                        </h4>
+                                        {selectedCommunity.pendingAuthorizedPersons.map((invite) => (
+                                            <div key={invite._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'white', borderRadius: '4px', marginBottom: '0.5rem', border: '1px solid #f1f5f9' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{invite.email}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>OTP Sent (For testing: {invite.otp})</div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="OTP"
+                                                        id={`otp-input-${invite.userId}`}
+                                                        style={{ width: '80px', padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.875rem' }}
+                                                    />
+                                                    <Button size="sm" onClick={() => {
+                                                        const val = document.getElementById(`otp-input-${invite.userId}`).value;
+                                                        handleApproveAuthorizedInvite(invite.userId, val);
+                                                    }}>
+                                                        Verify
+                                                    </Button>
+                                                    <Button size="sm" variant="secondary" onClick={() => handleResendOTP(invite.email)}>
+                                                        Resend
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -615,8 +762,13 @@ export default function CommunityManagement() {
                                     {selectedCommunity.members?.map((memberId) => {
                                         const user = allUsers.find(u => u._id === memberId);
                                         return (
-                                            <div key={memberId} style={{ padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                                                {user?.fullName || 'Unknown User'}
+                                            <div key={memberId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                <span>{user?.fullName || 'Unknown User'}</span>
+                                                {selectedCommunity.creator?._id !== memberId && (
+                                                    <Button variant="ghost" size="sm" onClick={() => handleRemoveMember(memberId)} style={{ color: 'red' }}>
+                                                        <X size={14} /> Remove
+                                                    </Button>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -640,20 +792,82 @@ export default function CommunityManagement() {
                                                 </Badge>
                                             </div>
                                             <p style={{ marginBottom: '0.5rem' }}>{post.content}</p>
+                                            {post.image && (
+                                                <div style={{ marginBottom: '0.5rem' }}>
+                                                    <img
+                                                        src={`${import.meta.env.VITE_API_URL}${post.image}`}
+                                                        alt="Post content"
+                                                        style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }}
+                                                    />
+                                                </div>
+                                            )}
                                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
                                                 <div style={{ cursor: 'pointer' }} onClick={() => handleLikePost(post._id)}>
                                                     <Heart size={14} /> {post.likes || 0}
                                                 </div>
-                                                <div style={{ cursor: 'pointer' }}>
+                                                <div style={{ cursor: 'pointer' }} onClick={() => setSelectedPostForComments(post)}>
                                                     <MessageSquare size={14} /> {post.comments?.length || 0}
                                                 </div>
                                                 <div style={{ cursor: 'pointer' }} onClick={() => handleSharePost(post._id)}>
                                                     <Share2 size={14} /> {post.shares || 0}
                                                 </div>
+                                                <div style={{ cursor: 'pointer', marginLeft: 'auto', color: 'red' }} onClick={() => handleDeletePost(post._id)}>
+                                                    <Trash2 size={14} /> Delete
+                                                </div>
                                             </div>
                                         </div>
                                     )) : (
                                         <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>No posts yet</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Events Tab */}
+                        {detailTab === 'events' && (
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <h4 style={{ margin: 0 }}>Community Events</h4>
+                                    <Button size="sm" onClick={() => {
+                                        setNewPost({ ...newPost, type: 'Event' });
+                                        setIsCreatePostOpen(true);
+                                    }}>
+                                        <Plus size={16} style={{ marginRight: '4px' }} /> Post New Event
+                                    </Button>
+                                </div>
+                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    {posts.filter(p => p.type === 'Event').length > 0 ? (
+                                        posts.filter(p => p.type === 'Event').map((post) => (
+                                            <div key={post._id} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '1rem', background: '#f8fafc' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{post.authorName}</div>
+                                                    <Badge variant="primary">EVENT</Badge>
+                                                </div>
+                                                <p style={{ marginBottom: '1rem', color: '#334155' }}>{post.content}</p>
+                                                {post.image && (
+                                                    <img
+                                                        src={`${import.meta.env.VITE_API_URL}${post.image}`}
+                                                        alt="Event"
+                                                        style={{ width: '250px', maxHeight: '250px', objectFit: 'cover', borderRadius: '6px', marginBottom: '1rem' }}
+                                                    />
+                                                )}
+                                                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
+                                                    <div style={{ cursor: 'pointer' }} onClick={() => handleLikePost(post._id)}>
+                                                        <Heart size={14} /> {post.likes || 0}
+                                                    </div>
+                                                    <div style={{ cursor: 'pointer' }} onClick={() => setSelectedPostForComments(post)}>
+                                                        <MessageSquare size={14} /> {post.comments?.length || 0}
+                                                    </div>
+                                                    <div style={{ cursor: 'pointer', marginLeft: 'auto', color: 'red' }} onClick={() => handleDeletePost(post._id)}>
+                                                        <Trash2 size={14} /> Delete
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                            <p>No events found for this community.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -690,6 +904,15 @@ export default function CommunityManagement() {
                             placeholder="What's on your mind?"
                         />
                     </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Image (Optional)</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setNewPost({ ...newPost, image: e.target.files[0] })}
+                            style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                        />
+                    </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                         <Button variant="secondary" onClick={() => setIsCreatePostOpen(false)}>Cancel</Button>
                         <Button onClick={handleCreatePost} disabled={!newPost.content.trim()}>
@@ -697,6 +920,87 @@ export default function CommunityManagement() {
                         </Button>
                     </div>
                 </div>
+            </Modal>
+
+            {/* Edit Community Modal */}
+            <Modal
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                title="Edit Community"
+            >
+                {editingCommunity && (
+                    <div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Name</label>
+                            <input
+                                type="text"
+                                value={editingCommunity.name}
+                                onChange={(e) => setEditingCommunity({ ...editingCommunity, name: e.target.value })}
+                                style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Description</label>
+                            <textarea
+                                value={editingCommunity.description}
+                                onChange={(e) => setEditingCommunity({ ...editingCommunity, description: e.target.value })}
+                                style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px', minHeight: '80px' }}
+                            />
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Status</label>
+                            <select
+                                value={editingCommunity.status}
+                                onChange={(e) => setEditingCommunity({ ...editingCommunity, status: e.target.value })}
+                                style={{ width: '100%', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            >
+                                <option value="Pending">Pending</option>
+                                <option value="Active">Active</option>
+                            </select>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <Button variant="secondary" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+                            <Button onClick={handleUpdateCommunity}>Save Changes</Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Comments Moderation Modal */}
+            <Modal
+                isOpen={!!selectedPostForComments}
+                onClose={() => setSelectedPostForComments(null)}
+                title="Post Comments"
+            >
+                {selectedPostForComments && (
+                    <div>
+                        <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '1rem' }}>
+                            {selectedPostForComments.comments?.length > 0 ? selectedPostForComments.comments.map((comment) => (
+                                <div key={comment._id} style={{ padding: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{comment.userName}</div>
+                                            <div style={{ fontSize: '0.875rem' }}>{comment.text}</div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteComment(selectedPostForComments._id, comment._id)}
+                                            style={{ color: 'red' }}
+                                        >
+                                            <Trash2 size={14} />
+                                        </Button>
+                                    </div>
+                                </div>
+                            )) : (
+                                <p style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>No comments yet</p>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button onClick={() => setSelectedPostForComments(null)}>Close</Button>
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );

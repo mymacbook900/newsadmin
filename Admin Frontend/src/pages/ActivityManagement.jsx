@@ -26,12 +26,14 @@ export default function ActivityManagement() {
             setActivities(res.data.map(log => ({
                 id: log._id,
                 action: log.action,
-                user: log.user,
-                role: 'Admin', // Placeholder or use dynamic if available
-                ip: '127.0.0.1',
+                user: log.user?.fullName || 'System',
+                role: log.user?.role || 'Admin',
+                ip: log.ip || '127.0.0.1',
                 time: new Date(log.timestamp).toLocaleString(),
                 status: 'Success',
-                detail: log.details
+                detail: log.details,
+                targetModel: log.targetModel,
+                targetTitle: log.targetId?.title || log.targetId?.name || log.targetId?.content?.substring(0, 30) || 'N/A'
             })));
         } catch (error) {
             console.error("Fetch Logs Error:", error);
@@ -144,10 +146,10 @@ export default function ActivityManagement() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Action</TableHead>
+                        <TableHead>Target</TableHead>
                         <TableHead>User / Role</TableHead>
-                        <TableHead>IP Address</TableHead>
                         <TableHead>Time</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Details</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -160,7 +162,13 @@ export default function ActivityManagement() {
                                         <div style={{ padding: '0.5rem', background: '#f1f5f9', borderRadius: '0.375rem', color: '#64748b' }}>
                                             <Activity size={18} />
                                         </div>
-                                        <span style={{ fontWeight: 500 }}>{item.action}</span>
+                                        <span style={{ fontWeight: 600 }}>{item.action}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline" size="sm" style={{ marginBottom: 4 }}>{item.targetModel}</Badge>
+                                    <div style={{ fontSize: '0.8rem', color: '#64748b', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {item.targetTitle}
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -172,12 +180,9 @@ export default function ActivityManagement() {
                                         </div>
                                     </div>
                                 </TableCell>
-                                <TableCell>
-                                    <span style={{ fontFamily: 'monospace', color: '#64748b' }}>{item.ip}</span>
-                                </TableCell>
                                 <TableCell>{item.time}</TableCell>
                                 <TableCell>
-                                    <Badge variant={getStatusColor(item.status)}>{item.status}</Badge>
+                                    <div style={{ fontSize: '0.85rem', color: '#475569', maxWidth: '200px' }}>{item.detail}</div>
                                 </TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="sm" onClick={() => handleViewDetails(item)} title="View Details">

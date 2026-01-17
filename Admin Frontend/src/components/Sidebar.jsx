@@ -14,8 +14,9 @@ import {
     FlagTriangleRight,
     Settings,
     LogOut,
-    Activity,
-    BookOpen
+    BookOpen,
+    Bookmark,
+    Clock,
 } from 'lucide-react';
 import clsx from 'clsx';
 import './Sidebar.css';
@@ -35,8 +36,9 @@ const navItems = [
     { label: 'News Management', path: '/news', icon: Newspaper },
     { label: 'Communities', path: '/communities', icon: UsersRound },
     { label: 'Reporter Events', path: '/events', icon: Calendar },
-    { label: 'Activity', path: '/activity', icon: Activity },
-    { label: 'Reports & Mod', path: '/reports', icon: FlagTriangleRight },
+    { label: 'My Activity', path: '/my-activity', icon: Clock },
+    { label: 'Saved Content', path: '/saved', icon: Bookmark },
+    { label: 'Insights & Controls', path: '/moderation', icon: FlagTriangleRight },
     { label: 'Case Studies', path: '/casestudies', icon: BookOpen },
     { label: 'Settings', path: '/settings', icon: Settings },
 ];
@@ -45,6 +47,19 @@ export default function Sidebar({ isOpen, className }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [expandedMenu, setExpandedMenu] = useState({});
+
+    // Get user from localStorage
+    const userJson = localStorage.getItem('adminUser');
+    const user = userJson ? JSON.parse(userJson) : null;
+    const isReporter = user?.role === 'Reporter';
+    const isAdmin = user?.role === 'Admin'; // Assuming 'Admin' is the role for administrators
+
+    // Build dynamic nav items
+    const filteredNavItems = [...navItems];
+    if (isReporter || isAdmin) { // Admins can also see Reporting Hub for moderation/testing
+        // Add Reporting Hub for reporters and admins
+        filteredNavItems.push({ label: 'Reporting Hub', path: '/reporting-hub', icon: LayoutDashboard });
+    }
 
     const toggleMenu = (label) => {
         setExpandedMenu(prev => ({ ...prev, [label]: !prev[label] }));
@@ -68,7 +83,7 @@ export default function Sidebar({ isOpen, className }) {
             </div>
 
             <nav className="sidebar-nav">
-                {navItems.map((item) => {
+                {filteredNavItems.map((item) => {
                     if (item.children) {
                         const isExpanded = expandedMenu[item.label] || location.pathname.startsWith(item.path);
                         const isActiveParent = location.pathname.startsWith(item.path);

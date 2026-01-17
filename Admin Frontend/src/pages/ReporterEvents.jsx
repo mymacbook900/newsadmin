@@ -1,38 +1,61 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { Plus, Calendar, MapPin, AlertCircle, QrCode } from 'lucide-react';
-
-// Mock Data for Reporter Events
-const MOCK_REPORTER_EVENTS = [
-    { id: 1, title: 'Press Conference: New Policy', organizer: 'Govt. Dept', date: '2026-03-01', location: 'Press Club', category: 'News', status: 'Upcoming' },
-    { id: 2, title: 'Reporter Workshop', organizer: 'Media House', date: '2026-03-10', location: 'Grand Plaza', category: 'Workshop', status: 'Upcoming' },
-];
+import { getEventsAPI, createEventAPI } from '../services/userApi';
 
 export default function ReporterEvents() {
-    const [events, setEvents] = useState(MOCK_REPORTER_EVENTS);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
     const [newEvent, setNewEvent] = useState({ title: '', organizer: '', date: '', location: '', category: 'News' });
     const [showQRCode, setShowQRCode] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    const fetchEvents = async () => {
+        try {
+            setLoading(true);
+            const res = await getEventsAPI('Reporter');
+            setEvents(res.data);
+        } catch (error) {
+            console.error("Fetch Events Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCreateEvent = (e) => {
         e.preventDefault();
         setShowQRCode(true);
     };
 
-    const confirmPayment = () => {
-        const eventToAdd = {
-            id: events.length + 1,
-            ...newEvent,
-            status: 'Upcoming'
-        };
-        setEvents([eventToAdd, ...events]);
-        setIsCreateEventOpen(false);
-        setNewEvent({ title: '', organizer: '', date: '', location: '', category: 'News' });
-        setShowQRCode(false);
-        alert("Payment Confirmed! Event Created.");
+    const confirmPayment = async () => {
+        try {
+            setIsSubmitting(true);
+            const eventData = {
+                ...newEvent,
+                type: 'Reporter',
+                status: 'Upcoming'
+            };
+            await createEventAPI(eventData);
+
+            alert("Payment Confirmed! Event Created Successfully.");
+            setIsCreateEventOpen(false);
+            setNewEvent({ title: '', organizer: '', date: '', location: '', category: 'News' });
+            setShowQRCode(false);
+            fetchEvents(); // Refresh list
+        } catch (error) {
+            console.error("Create Event Error:", error);
+            alert("Failed to create event. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -59,8 +82,12 @@ export default function ReporterEvents() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {events.map((event) => (
-                            <TableRow key={event.id}>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Loading events...</TableCell>
+                            </TableRow>
+                        ) : events.length > 0 ? events.map((event) => (
+                            <TableRow key={event._id}>
                                 <TableCell>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div style={{ padding: '0.5rem', background: '#f3e8ff', borderRadius: '0.375rem', color: '#9333ea' }}>
@@ -74,7 +101,7 @@ export default function ReporterEvents() {
                                 </TableCell>
                                 <TableCell>{event.organizer}</TableCell>
                                 <TableCell>
-                                    <div style={{ fontSize: '0.875rem' }}>{event.date}</div>
+                                    <div style={{ fontSize: '0.875rem' }}>{new Date(event.date).toLocaleDateString()}</div>
                                     <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <MapPin size={12} /> {event.location}
                                     </div>
@@ -85,7 +112,11 @@ export default function ReporterEvents() {
                                     </Badge>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No reporter events found.</TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>
@@ -175,7 +206,9 @@ export default function ReporterEvents() {
                         <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>The QR code is valid for 10 minutes. Please do not refresh the page.</p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                             <Button variant="secondary" onClick={() => setShowQRCode(false)}>Back</Button>
-                            <Button onClick={confirmPayment}>I have Paid</Button>
+                            <Button onClick={confirmPayment} disabled={isSubmitting}>
+                                {isSubmitting ? 'Processing...' : 'I have Paid'}
+                            </Button>
                         </div>
                     </div>
                 )}

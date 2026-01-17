@@ -4,7 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { getUsersAPI, getUserByIdAPI, addUserAPI, updateUserAPI, updateUserStatusAPI, deleteUserAPI, getReportersAPI, verifyReporterAPI, getUserActivityAPI } from '../services/userApi';
+import { getUsersAPI, getUserByIdAPI, addUserAPI, updateUserAPI, updateUserStatusAPI, deleteUserAPI, getReportersAPI, verifyReporterAPI, getUserLogsAPI } from '../services/userApi';
 
 export default function UserManagement({ initialRole = 'All' }) {
     // Tab logic simplified: 'List' is default. Only Reports have 'Requests'.
@@ -155,7 +155,7 @@ export default function UserManagement({ initialRole = 'All' }) {
 
             // Fetch Activities logic: catch error if not admin or fails
             try {
-                const logRes = await getUserActivityAPI(user._id);
+                const logRes = await getUserLogsAPI(user._id);
                 setUserLogs(logRes.data);
             } catch (err) {
                 console.warn("Could not fetch logs", err);
@@ -499,43 +499,68 @@ export default function UserManagement({ initialRole = 'All' }) {
                             )}
 
                             {profileTab === 'Activity' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     {userLogs.length > 0 ? userLogs.map(log => (
-                                        <div key={log._id} style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-                                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Clock size={16} />
+                                        <div key={log._id} style={{ display: 'flex', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                                {log.action === 'Like' ? <Heart size={16} className="text-red-500" /> :
+                                                    log.action === 'Share' ? <Share2 size={16} className="text-green-500" /> :
+                                                        log.action === 'Comment' ? <MessageSquare size={16} className="text-purple-500" /> :
+                                                            log.action === 'Save' ? <Bookmark size={16} className="text-orange-500" /> :
+                                                                <Activity size={16} className="text-blue-500" />}
                                             </div>
-                                            <div>
-                                                <div>
-                                                    <strong>{selectedUser.fullName}</strong> {log.action.toLowerCase()}d a {log.targetModel}
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{log.action} <Badge variant="outline" size="sm" style={{ marginLeft: 4 }}>{log.targetModel}</Badge></div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{new Date(log.timestamp).toLocaleDateString()}</div>
                                                 </div>
-                                                <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                                                    {log.details || (log.targetId?.title || log.targetId?.name || "Content")}
+                                                <div style={{ fontSize: '0.875rem', color: '#475569', marginTop: '2px' }}>
+                                                    {log.details || `Interacted with a ${log.targetModel}`}
                                                 </div>
-                                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                                    {new Date(log.timestamp).toLocaleString()}
-                                                </div>
+                                                {(log.targetId?.title || log.targetId?.name) && (
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginTop: '4px', borderLeft: '2px solid #e2e8f0', paddingLeft: '8px' }}>
+                                                        {log.targetId.title || log.targetId.name}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )) : (
-                                        <p className="text-center text-secondary">No recent activity found.</p>
+                                        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                            <Activity size={40} style={{ opacity: 0.2, marginBottom: '0.5rem' }} />
+                                            <p>No recent activity found.</p>
+                                        </div>
                                     )}
                                 </div>
                             )}
 
                             {profileTab === 'Saved' && (
-                                <div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     {selectedUser.savedContent && selectedUser.savedContent.length > 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                            {selectedUser.savedContent.map((item, idx) => (
-                                                <div key={idx} style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                                                    <span>{item.item?.title || item.item?.name || 'Content'}</span>
-                                                    <Badge>{item.itemModel}</Badge>
+                                        selectedUser.savedContent.map((item, idx) => (
+                                            <div key={idx} style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    {item.itemModel === 'News' ? <Newspaper size={18} className="text-blue-500" /> :
+                                                        item.itemModel === 'Post' ? <FileText size={18} className="text-green-500" /> :
+                                                            item.itemModel === 'Event' ? <Calendar size={18} className="text-purple-500" /> :
+                                                                item.itemModel === 'CaseStudy' ? <BookOpen size={18} className="text-indigo-500" /> :
+                                                                    <Bookmark size={18} className="text-slate-500" />}
                                                 </div>
-                                            ))}
-                                        </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>
+                                                        {item.item?.title || item.item?.name || item.item?.content?.substring(0, 40) || 'Deleted Content'}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
+                                                        <Badge variant="secondary" size="xs">{item.itemModel}</Badge>
+                                                        {item.item?.createdAt && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>• {new Date(item.item.createdAt).toLocaleDateString()}</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
                                     ) : (
-                                        <p className="text-center text-secondary">No saved content.</p>
+                                        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+                                            <Bookmark size={40} style={{ opacity: 0.2, marginBottom: '0.5rem' }} />
+                                            <p>No saved content found.</p>
+                                        </div>
                                     )}
                                 </div>
                             )}

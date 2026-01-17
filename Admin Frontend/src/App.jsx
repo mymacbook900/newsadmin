@@ -6,12 +6,14 @@ import ReporterManagement from './pages/ReporterManagement';
 import NewsManagement from './pages/NewsManagement';
 import CommunityManagement from './pages/CommunityManagement';
 import ReporterEvents from './pages/ReporterEvents';
-import ActivityManagement from './pages/ActivityManagement';
 import Reports from './pages/Reports';
 import CaseStudyManagement from './pages/CaseStudyManagement';
 import Settings from './pages/Settings';
 import LoginPage from './pages/LoginPage';
 import ForgotPassword from './pages/ForgotPassword';
+import ReportingHub from './pages/ReportingHub';
+import MyActivity from './pages/MyActivity';
+import SavedContent from './pages/SavedContent';
 
 // Simple Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -42,10 +44,12 @@ function App() {
           <Route path="news" element={<NewsManagement />} />
           <Route path="communities" element={<CommunityManagement />} />
           <Route path="events" element={<ReporterEvents />} />
-          <Route path="activity" element={<ActivityManagement />} />
-          <Route path="reports" element={<Reports />} />
+          <Route path="moderation" element={<Reports />} />
           <Route path="casestudies" element={<CaseStudyManagement />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="reporting-hub" element={<ReportingHub />} />
+          <Route path="my-activity" element={<MyActivity />} />
+          <Route path="saved" element={<SavedContent />} />
         </Route>
       </Routes>
     </BrowserRouter>

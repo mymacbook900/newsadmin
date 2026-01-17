@@ -4,21 +4,22 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import {
+    BarChart3,
+    Eye,
+    Heart,
+    Share2,
+    Save,
+    Bookmark,
     Flag,
     AlertTriangle,
     MessageSquare,
-    CheckCircle,
     XCircle,
     Download,
     TrendingUp,
     TrendingDown,
-    Users,
-    FileText,
-    BarChart3
+    FileText
 } from 'lucide-react';
 import {
-    LineChart,
-    Line,
     BarChart,
     Bar,
     XAxis,
@@ -40,7 +41,8 @@ export default function Reports() {
     const [activeTab, setActiveTab] = useState('analytics');
     const [analyticsData, setAnalyticsData] = useState({
         engagementTrends: [],
-        categoryDistribution: []
+        typeMetrics: [],
+        totals: {}
     });
 
     useEffect(() => {
@@ -104,7 +106,7 @@ export default function Reports() {
         <div className="reports-container">
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                    <h1>Reports & Analytics</h1>
+                    <h1>Insights & Moderation</h1>
                     <p className="text-secondary">Monitor platform performance and content health</p>
                 </div>
                 <div className="export-group">
@@ -127,139 +129,86 @@ export default function Reports() {
                     <BarChart3 size={18} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
                     Analytics Overview
                 </button>
-                <button
-                    className={`tab-btn ${activeTab === 'moderation' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('moderation')}
-                >
-                    <Flag size={18} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
-                    Moderation Queue
-                </button>
+
             </div>
 
-            {activeTab === 'analytics' ? (
-                <div className="analytics-content">
-                    <div className="analytics-grid">
-                        <div className="analytics-card glass-panel">
-                            <div className="meta">
-                                <span className="title">Total Revenue</span>
-                                <div className="trend trend-up"><TrendingUp size={14} /> +12.5%</div>
-                            </div>
-                            <div className="value">$42,394</div>
-                            <div className="stat-icon" style={{ background: 'var(--primary-50)', color: 'var(--primary-500)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
-                                <TrendingUp size={18} />
-                            </div>
-                        </div>
-                        <div className="analytics-card glass-panel">
-                            <div className="meta">
-                                <span className="title">New Users</span>
-                                <div className="trend trend-up"><TrendingUp size={14} /> +8.2%</div>
-                            </div>
-                            <div className="value">2,482</div>
-                            <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
-                                <Users size={18} />
-                            </div>
-                        </div>
-                        <div className="analytics-card glass-panel">
-                            <div className="meta">
-                                <span className="title">Articles Published</span>
-                                <div className="trend trend-down"><TrendingDown size={14} /> -2.4%</div>
-                            </div>
-                            <div className="value">148</div>
-                            <div className="stat-icon" style={{ background: '#fef9c3', color: '#ca8a04', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
-                                <FileText size={18} />
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="charts-section">
-                        <div className="chart-box glass-panel">
-                            <h3>Engagement Trends</h3>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={analyticsData.engagementTrends}>
-                                    <defs>
-                                        <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="var(--primary-500)" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="var(--primary-500)" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-lg)' }}
-                                    />
-                                    <Area type="monotone" dataKey="likes" stroke="var(--primary-500)" fillOpacity={1} fill="url(#colorVisits)" strokeWidth={2} />
-                                    <Area type="monotone" dataKey="posts" stroke="#10b981" fillOpacity={0} strokeWidth={2} />
-                                </AreaChart>
-                            </ResponsiveContainer>
+            <div className="analytics-content">
+                <div className="analytics-grid">
+                    <div className="analytics-card glass-panel">
+                        <div className="meta">
+                            <span className="title">Total Views</span>
+                            <div className="trend trend-up"><Eye size={14} /> Global</div>
                         </div>
-                        <div className="chart-box glass-panel">
-                            <h3>Top Categories</h3>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={analyticsData.categoryDistribution} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                                    <XAxis type="number" hide />
-                                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12, fontWeight: 500 }} />
-                                    <Tooltip cursor={{ fill: 'transparent' }} />
-                                    <Bar dataKey="value" fill="var(--primary-400)" radius={[0, 4, 4, 0]} barSize={20} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                        <div className="value">{analyticsData.totals?.totalViews?.toLocaleString() || 0}</div>
+                        <div className="stat-icon" style={{ background: 'var(--primary-50)', color: 'var(--primary-500)', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
+                            <BarChart3 size={18} />
+                        </div>
+                    </div>
+                    <div className="analytics-card glass-panel">
+                        <div className="meta">
+                            <span className="title">Total Engagement</span>
+                            <div className="trend trend-up"><Heart size={14} /> {((analyticsData.totals?.totalLikes + analyticsData.totals?.totalComments) || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="value">{((analyticsData.totals?.totalLikes + analyticsData.totals?.totalComments + analyticsData.totals?.totalShares) || 0).toLocaleString()}</div>
+                        <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
+                            <TrendingUp size={18} />
+                        </div>
+                    </div>
+                    <div className="analytics-card glass-panel">
+                        <div className="meta">
+                            <span className="title">Bookmarked Items</span>
+                            <div className="trend trend-up"><Bookmark size={14} /> +0</div>
+                        </div>
+                        <div className="value">{analyticsData.totals?.totalSaves?.toLocaleString() || 0}</div>
+                        <div className="stat-icon" style={{ background: '#fef9c3', color: '#ca8a04', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', marginTop: '8px' }}>
+                            <Save size={18} />
                         </div>
                     </div>
                 </div>
-            ) : (
-                <div className="moderation-content">
-                    <div className="moderation-header">
-                        <h2>Pending Reviews</h2>
-                        <Badge variant="warning">{reports.filter(r => r.status === 'Pending').length} Pending</Badge>
+
+                <div className="charts-section">
+                    <div className="chart-box glass-panel">
+                        <h3>Platform Engagement (Views vs Interactions)</h3>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                            <AreaChart data={analyticsData.engagementTrends}>
+                                <defs>
+                                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--primary-500)" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="var(--primary-500)" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-lg)', padding: '12px' }}
+                                />
+                                <Area type="monotone" dataKey="views" name="Page Views" stroke="var(--primary-500)" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
+                                <Area type="monotone" dataKey="likes" name="Likes" stroke="#ef4444" fillOpacity={0} strokeWidth={2} />
+                                <Area type="monotone" dataKey="comments" name="Comments" stroke="#8b5cf6" fillOpacity={0} strokeWidth={2} />
+                            </AreaChart>
+                        </ResponsiveContainer>
                     </div>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Target Content</TableHead>
-                                <TableHead>Reported By</TableHead>
-                                <TableHead>Severity</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {reports.length > 0 ? reports.map((report) => (
-                                <TableRow key={report._id}>
-                                    <TableCell>
-                                        <div style={{ fontWeight: 500 }}>{report.type}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <MessageSquare size={14} color="#94a3b8" />
-                                            {report.targetContent}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{report.reporter}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={getSeverityColor(report.severity)}>{report.severity}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={report.status === 'Resolved' ? 'success' : report.status === 'Dismissed' ? 'default' : 'warning'}>
-                                            {report.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button variant="primary" size="sm" onClick={() => handleReview(report)}>Review</Button>
-                                    </TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
-                                        {loading ? 'Loading...' : 'No reports pending review.'}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                    <div className="chart-box glass-panel">
+                        <h3>Content Performance (by Type)</h3>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                            <BarChart data={analyticsData.typeMetrics}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 12, fontWeight: 500 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-lg)' }} />
+                                <Bar dataKey="Views" fill="var(--primary-400)" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Likes" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Comments" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Shares" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="Saves" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            )}
+            </div>
+
 
             <Modal
                 isOpen={isModalOpen}
@@ -299,4 +248,3 @@ export default function Reports() {
         </div>
     );
 }
-

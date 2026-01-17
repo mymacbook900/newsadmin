@@ -123,6 +123,10 @@
 .chart-box {
     padding: 1.5rem;
     height: 400px;
+    min-height: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-box h3 {
