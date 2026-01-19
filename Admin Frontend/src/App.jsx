@@ -14,6 +14,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ReportingHub from './pages/ReportingHub';
 import MyActivity from './pages/MyActivity';
 import SavedContent from './pages/SavedContent';
+import PublicNewsView from './pages/PublicNewsView';
 
 // Simple Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -28,6 +29,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/story/:id" element={<PublicNewsView />} />
 
         <Route path="/" element={
           <ProtectedRoute>

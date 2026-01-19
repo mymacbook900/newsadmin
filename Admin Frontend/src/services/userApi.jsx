@@ -1,8 +1,17 @@
 import axios from "axios";
 
+
+
+const BASE_URL = import.meta.env.DEV
+    ? import.meta.env.VITE_API_URL
+    : import.meta.env.VITE_API_URL_PROD;
+
 const API = axios.create({
-    baseURL: import.meta.env.VITE_API_URL + "/api"
+    baseURL: BASE_URL,
+    withCredentials: true,
 });
+
+
 
 // attach token
 API.interceptors.request.use((req) => {
@@ -30,6 +39,7 @@ export const verifyReporterAPI = (id, data) => API.put(`/users/verify-reporter/$
 
 // News API
 export const getNewsAPI = () => API.get('/news');
+export const getNewsByIdAPI = (id) => API.get(`/news/${id}`);
 export const createNewsAPI = (data) => API.post('/news', data);
 export const updateNewsStatusAPI = (id, status) => API.patch(`/news/${id}/status`, { status });
 export const deleteNewsAPI = (id) => API.delete(`/news/${id}`);
@@ -75,6 +85,7 @@ export const saveContentAPI = (data) => API.post('/users/me/saved', data);
 // Analytics
 export const getDashboardAnalyticsAPI = () => API.get('/analytics/dashboard');
 export const getReportsAnalyticsAPI = () => API.get('/analytics/reports');
+export const getUserAnalyticsAPI = (id) => API.get(`/analytics/user/${id}`);
 
 // Community Management
 export const sendEmailVerificationAPI = (data) => API.post('/communities/verify-email/send', data);

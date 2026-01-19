@@ -21,6 +21,25 @@ export default function CommunityManagement() {
 
     // Creation Wizard State
     const [wizardStep, setWizardStep] = useState(0);
+
+    // Helper to get image URL from path
+    const getImageUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+
+        // VITE_API_URL is usually http://localhost:5000/api
+        // We want http://localhost:5000/uploads/...
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const serverUrl = apiUrl.endsWith('/api')
+            ? apiUrl.slice(0, -4)
+            : apiUrl;
+
+        // Ensure path starts with / if not present (uploads usually don't have leading / in db sometimes)
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+        return `${serverUrl}${cleanPath}`;
+    };
+
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [newCommunity, setNewCommunity] = useState({
         name: '',
@@ -795,7 +814,7 @@ export default function CommunityManagement() {
                                             {post.image && (
                                                 <div style={{ marginBottom: '0.5rem' }}>
                                                     <img
-                                                        src={`${import.meta.env.VITE_API_URL}${post.image}`}
+                                                        src={getImageUrl(post.image)}
                                                         alt="Post content"
                                                         style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }}
                                                     />

@@ -377,14 +377,6 @@ export default function Dashboard() {
                                 <Users size={20} />
                                 <span>Manage Users</span>
                             </button>
-                            <button className="action-btn" onClick={() => navigate('/reports')}>
-                                <AlertCircle size={20} />
-                                <span>View Reports</span>
-                            </button>
-                            <button className="action-btn" onClick={() => navigate('/activity')}>
-                                <Activity size={20} />
-                                <span>Site Logs</span>
-                            </button>
                         </div>
                     </div>
 

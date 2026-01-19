@@ -3,7 +3,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { Plus, Trash2, Eye, CheckCircle, XCircle, Upload, ThumbsUp, Share2, Globe, Clock, User } from 'lucide-react';
+import { Plus, Trash2, Eye, CheckCircle, XCircle, Upload, ThumbsUp, Share2, Globe, Clock, User, Link, Check, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
 import { getNewsAPI, createNewsAPI, updateNewsStatusAPI, deleteNewsAPI, likeNewsAPI, shareNewsAPI } from '../services/userApi';
 
 export default function NewsManagement() {
@@ -15,12 +15,18 @@ export default function NewsManagement() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newArticle, setNewArticle] = useState({ title: '', author: 'Admin', category: 'Local', content: '', image: null, isExternal: false, externalSource: '' });
 
+    // Share Modal State
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [shareData, setShareData] = useState({ title: '', url: '' });
+    const [copied, setCopied] = useState(false);
+
     // Filters
     const [filterVerification, setFilterVerification] = useState("All"); // All, Verified, Pending, Not Verified (External)
     const [filterCategory, setFilterCategory] = useState("All");
 
     useEffect(() => {
         fetchNews();
+        console.log(news);
     }, []);
 
     const fetchNews = async () => {
@@ -63,27 +69,48 @@ export default function NewsManagement() {
 
     // Interaction Handlers (For Demo/Testing purposes in Admin)
     const handleLike = async (id) => {
+        // Optimistic UI Update
+        if (selectedArticle && selectedArticle._id === id) {
+            setSelectedArticle(prev => ({ ...prev, likes: prev.likes + 1 }));
+        }
+
         try {
             await likeNewsAPI(id);
-            // Update local state to reflect change immediately (optimistic UI or refetch)
-            if (selectedArticle && selectedArticle._id === id) {
-                setSelectedArticle(prev => ({ ...prev, likes: prev.likes + 1 }));
-            }
-            fetchNews();
+            fetchNews(); // Sync with server
         } catch (error) {
             console.error("Like Error:", error);
+            // Revert optimistic update
+            if (selectedArticle && selectedArticle._id === id) {
+                setSelectedArticle(prev => ({ ...prev, likes: prev.likes - 1 }));
+            }
+            alert("Failed to like article. Please try again.");
         }
     };
 
-    const handleShare = async (id) => {
+    const handleShare = async (article) => {
+        // Optimistic UI Update
+        if (selectedArticle && selectedArticle._id === article._id) {
+            setSelectedArticle(prev => ({ ...prev, shares: (prev.shares || 0) + 1 }));
+        }
+
         try {
-            await shareNewsAPI(id);
-            if (selectedArticle && selectedArticle._id === id) {
-                setSelectedArticle(prev => ({ ...prev, shares: prev.shares + 1 }));
-            }
+            await shareNewsAPI(article._id);
             fetchNews();
+
+            // Generate share URL
+            const baseUrl = window.location.origin; // e.g. http://localhost:5173
+            const shareUrl = `${baseUrl}/story/${article._id}`;
+
+            setShareData({ title: article.title, url: shareUrl });
+            setIsShareModalOpen(true);
+            setCopied(false);
         } catch (error) {
             console.error("Share Error:", error);
+            // Revert optimistic update
+            if (selectedArticle && selectedArticle._id === article._id) {
+                setSelectedArticle(prev => ({ ...prev, shares: (prev.shares || 0) - 1 }));
+            }
+            alert("Failed to share article. Please try again.");
         }
     };
 
@@ -306,7 +333,7 @@ export default function NewsManagement() {
                             <Button size="sm" variant="ghost" onClick={() => handleLike(selectedArticle._id)}>
                                 <ThumbsUp size={16} style={{ marginRight: 5 }} /> {selectedArticle.likes} Likes
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleShare(selectedArticle._id)}>
+                            <Button size="sm" variant="ghost" onClick={() => handleShare(selectedArticle)}>
                                 <Share2 size={16} style={{ marginRight: 5 }} /> {selectedArticle.shares} Shares
                             </Button>
                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', color: '#64748b', fontSize: '14px' }}>
@@ -438,6 +465,88 @@ export default function NewsManagement() {
                     <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
                     <Button variant="outline" onClick={() => handleCreate('Pending')}>Save as Draft</Button>
                     <Button onClick={() => handleCreate('Published')}>Publish Now</Button>
+                </div>
+            </Modal>
+
+            {/* SHARE MODAL */}
+            <Modal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                title="Share this Article"
+                size="md"
+            >
+                <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                    <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Share "<b>{shareData.title}</b>" with your network</p>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+                        <a
+                            href={`https://wa.me/?text=${encodeURIComponent(shareData.title + ' ' + shareData.url)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#25d366' }}
+                        >
+                            <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#25d366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <MessageCircle size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>WhatsApp</span>
+                        </a>
+
+                        <a
+                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareData.url)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#1877f2' }}
+                        >
+                            <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#1877f2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Facebook size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>Facebook</span>
+                        </a>
+
+                        <a
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareData.title)}&url=${encodeURIComponent(shareData.url)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#000000' }}
+                        >
+                            <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#000000', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Twitter size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>X / Twitter</span>
+                        </a>
+
+                        <a
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareData.url)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none', color: '#0a66c2' }}
+                        >
+                            <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#0a66c2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Linkedin size={24} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 500 }}>LinkedIn</span>
+                        </a>
+                    </div>
+
+                    <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                            readOnly
+                            value={shareData.url}
+                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: '14px', color: '#475569' }}
+                        />
+                        <Button
+                            size="sm"
+                            variant={copied ? "success" : "secondary"}
+                            onClick={() => {
+                                navigator.clipboard.writeText(shareData.url);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            }}
+                        >
+                            {copied ? <Check size={16} /> : <Link size={16} />}
+                            {copied ? "Copied" : "Copy"}
+                        </Button>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                    <Button variant="secondary" onClick={() => setIsShareModalOpen(false)}>Close</Button>
                 </div>
             </Modal>
         </div>
