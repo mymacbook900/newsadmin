@@ -45,7 +45,7 @@ const INITIAL_STATS = [
     { label: 'Total News', value: '0', change: '+0%', icon: Newspaper, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Pending News', value: '0', change: '+0', icon: Clock, color: 'text-orange-600', bg: 'bg-orange-100' },
     { label: 'Published News', value: '0', change: '+0%', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100' },
-    { label: 'Reported News', value: '0', change: '+0', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100' },
+    { label: 'Communities', value: '0', change: '+0', icon: Users, color: 'text-red-600', bg: 'bg-red-100' },
     { label: 'Total Users', value: '0', change: '+0%', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Reporters', value: '0', change: '+0', icon: UserCheck, color: 'text-purple-600', bg: 'bg-purple-100' },
     { label: 'Case Studies', value: '0', change: '+0', icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-100' },

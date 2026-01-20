@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { Plus, Trash2, Eye, CheckCircle, XCircle, Upload, ThumbsUp, Share2, Globe, Clock, User, Link, Check, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
-import { getNewsAPI, createNewsAPI, updateNewsStatusAPI, deleteNewsAPI, likeNewsAPI, shareNewsAPI } from '../services/userApi';
+import { Plus, Trash2, Eye, CheckCircle, XCircle, Upload, ThumbsUp, Share2, Globe, Clock, User, Link, Check, Facebook, Twitter, Linkedin, MessageCircle, TrendingUp, BarChart2 } from 'lucide-react';
+import { getNewsAPI, createNewsAPI, updateNewsStatusAPI, deleteNewsAPI, likeNewsAPI, shareNewsAPI, getNewsAnalyticsAPI } from '../services/userApi';
 
 export default function NewsManagement() {
     const [news, setNews] = useState([]);
@@ -14,6 +15,8 @@ export default function NewsManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newArticle, setNewArticle] = useState({ title: '', author: 'Admin', category: 'Local', content: '', image: null, isExternal: false, externalSource: '' });
+    const [newsAnalytics, setNewsAnalytics] = useState([]);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -41,9 +44,21 @@ export default function NewsManagement() {
         }
     };
 
-    const handleOpenModal = (article) => {
+    const handleOpenModal = async (article) => {
         setSelectedArticle(article);
         setIsModalOpen(true);
+
+        // Fetch Analytics
+        try {
+            setAnalyticsLoading(true);
+            const res = await getNewsAnalyticsAPI(article._id);
+            setNewsAnalytics(res.data);
+        } catch (error) {
+            console.error("Fetch News Analytics Error:", error);
+            setNewsAnalytics([]);
+        } finally {
+            setAnalyticsLoading(false);
+        }
     };
 
     const updateStatus = async (id, newStatus) => {
@@ -338,6 +353,75 @@ export default function NewsManagement() {
                             </Button>
                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', color: '#64748b', fontSize: '14px' }}>
                                 <Eye size={16} style={{ marginRight: 5 }} /> {selectedArticle.views} Views
+                            </div>
+                        </div>
+
+                        {/* Engagement Graph */}
+                        <div style={{ marginBottom: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
+                                <TrendingUp size={20} color="#6366f1" />
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Engagement Trends (Last 7 Days)</h3>
+                            </div>
+
+                            <div className="glass-card" style={{ padding: '1.5rem', height: '300px', width: '100%', minWidth: 0, background: 'white' }}>
+                                {analyticsLoading ? (
+                                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                        Loading analytics...
+                                    </div>
+                                ) : newsAnalytics.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={newsAnalytics}>
+                                            <defs>
+                                                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorShares" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorComments" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis
+                                                dataKey="name"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                                tickFormatter={(val) => {
+                                                    const date = new Date(val);
+                                                    return `${date.getDate()}/${date.getMonth() + 1}`;
+                                                }}
+                                                dy={10}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#94a3b8', fontSize: 10 }}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            />
+                                            <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+                                            <Area type="monotone" dataKey="views" name="Views" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
+                                            <Area type="monotone" dataKey="likes" name="Likes" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorLikes)" />
+                                            <Area type="monotone" dataKey="shares" name="Shares" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorShares)" />
+                                            <Area type="monotone" dataKey="comments" name="Comments" stroke="#ec4899" strokeWidth={3} fillOpacity={1} fill="url(#colorComments)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: '1rem' }}>
+                                        <BarChart2 size={40} opacity={0.2} />
+                                        <div style={{ fontSize: '0.9rem' }}>No engagement data available for this period.</div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

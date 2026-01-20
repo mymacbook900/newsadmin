@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Shield, Ban, Trash2, Plus, Upload, MapPin, Briefcase, GraduationCap, Download, FileText, CheckCircle, XCircle, User, Mail, Eye, Edit, Power, Users, Clock, Bookmark, Calendar as CalendarIcon, Phone, Activity, TrendingUp, Newspaper, Heart, Share2, MessageSquare, BookOpen, Layers, ShieldAlert, Key, Lock, ThumbsUp, Hash, Languages, PieChart } from 'lucide-react';
+import { Search, Filter, Shield, Ban, Trash2, Plus, Upload, MapPin, Briefcase, GraduationCap, Download, FileText, CheckCircle, XCircle, User, Mail, Eye, Edit, Power, Users, Clock, Bookmark, Calendar as CalendarIcon, Phone, Activity, TrendingUp, Newspaper, Heart, Share2, MessageSquare, BookOpen, Layers, ShieldAlert, Key, Lock, ThumbsUp, Hash, Languages, PieChart, ArrowLeft } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
@@ -32,7 +32,7 @@ export default function UserManagement({ initialRole = 'All' }) {
     const [selectedUser, setSelectedUser] = useState(null); // Full user details
     const [userLogs, setUserLogs] = useState([]); // For profile activity tab
     const [userAnalytics, setUserAnalytics] = useState(null); // Performance/Engagement
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'details'
     const [profileTab, setProfileTab] = useState('Overview'); // Overview, Interests, Activity, Engagement, Saved, Security
 
     // Add/Edit User Form State
@@ -221,7 +221,7 @@ export default function UserManagement({ initialRole = 'All' }) {
         setIsVerifyModalOpen(true);
     };
 
-    const openProfileModal = async (user) => {
+    const openProfileView = async (user) => {
         // Fetch full details
         try {
             setLoading(true);
@@ -245,8 +245,8 @@ export default function UserManagement({ initialRole = 'All' }) {
                 setUserAnalytics(null);
             }
 
-            setProfileTab('Performance');
-            setIsProfileOpen(true);
+            setProfileTab('Overview');
+            setViewMode('details');
         } catch (error) {
             console.error("Failed to load profile details:", error);
         } finally {
@@ -398,179 +398,183 @@ export default function UserManagement({ initialRole = 'All' }) {
 
     return (
         <div>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div>
-                    <h1>{initialRole === 'All' ? 'User Management' : `${initialRole}s`}</h1>
-                    <p className="text-secondary">
-                        {initialRole === 'All' ? 'Manage all users, reporters, and admins' : `Manage and view ${initialRole}s`}
-                    </p>
-                </div>
-                {/* Add User Button */}
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <Button onClick={() => {
-                        // Reset for generic Add
-                        setNewUser({ fullName: '', email: '', password: '', phone: '', role: initialRole === 'All' ? 'User' : initialRole, address: '', profilePicture: null });
-                        setIsAddUserOpen(true);
-                    }}>
-                        <Plus size={18} style={{ marginRight: '8px' }} /> Add User
-                    </Button>
-                </div>
-            </div>
-
-            {/* Tabs (Reporter & All) */}
-            {(initialRole === 'Reporter' || initialRole === 'All') && (
-                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', overflowX: 'auto' }}>
-                    {getTabs().map(tab => (
-                        <div
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            style={{
-                                padding: '0.75rem 1.5rem', cursor: 'pointer',
-                                borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
-                                color: activeTab === tab ? '#2563eb' : '#64748b',
-                                fontWeight: activeTab === tab ? 600 : 500,
-                                whiteSpace: 'nowrap'
-                            }}
-                        >
-                            {tab}
+            {viewMode === 'list' && (
+                <>
+                    <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h1>{initialRole === 'All' ? 'User Management' : `${initialRole}s`}</h1>
+                            <p className="text-secondary">
+                                {initialRole === 'All' ? 'Manage all users, reporters, and admins' : `Manage and view ${initialRole}s`}
+                            </p>
                         </div>
-                    ))}
-                </div>
-            )}
+                        {/* Add User Button */}
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <Button onClick={() => {
+                                // Reset for generic Add
+                                setNewUser({ fullName: '', email: '', password: '', phone: '', role: initialRole === 'All' ? 'User' : initialRole, address: '', profilePicture: null });
+                                setIsAddUserOpen(true);
+                            }}>
+                                <Plus size={18} style={{ marginRight: '8px' }} /> Add User
+                            </Button>
+                        </div>
+                    </div>
 
-            {/* Search & Filter */}
-            <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <div className="search-bar" style={{ flex: 1, backgroundColor: 'white' }}>
-                    <Search size={18} className="search-icon" />
-                    <input type="text" placeholder="Search by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                </div>
-                {activeTab === 'User List' && initialRole === 'All' && (
-                    <div style={{ position: 'relative' }}>
-                        <Button variant="secondary" onClick={() => setIsFilterOpen(!isFilterOpen)}>
-                            <Filter size={18} /> Filter
-                        </Button>
-                        {isFilterOpen && (
-                            <div className="glass-panel dropdown-menu" style={{ position: 'absolute', top: '100%', right: 0, zIndex: 10, background: 'white', padding: '0.5rem', minWidth: '150px' }}>
-                                {['All', 'User', 'Reporter', 'Admin'].map(r => (
-                                    <div key={r} onClick={() => { setFilterRole(r); setIsFilterOpen(false); }} style={{ padding: '8px', cursor: 'pointer' }}>{r}</div>
-                                ))}
+                    {/* Tabs (Reporter & All) */}
+                    {(initialRole === 'Reporter' || initialRole === 'All') && (
+                        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', overflowX: 'auto' }}>
+                            {getTabs().map(tab => (
+                                <div
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    style={{
+                                        padding: '0.75rem 1.5rem', cursor: 'pointer',
+                                        borderBottom: activeTab === tab ? '2px solid #2563eb' : '2px solid transparent',
+                                        color: activeTab === tab ? '#2563eb' : '#64748b',
+                                        fontWeight: activeTab === tab ? 600 : 500,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {tab}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Search & Filter */}
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div className="search-bar" style={{ flex: 1, backgroundColor: 'white' }}>
+                            <Search size={18} className="search-icon" />
+                            <input type="text" placeholder="Search by name or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        </div>
+                        {activeTab === 'User List' && initialRole === 'All' && (
+                            <div style={{ position: 'relative' }}>
+                                <Button variant="secondary" onClick={() => setIsFilterOpen(!isFilterOpen)}>
+                                    <Filter size={18} /> Filter
+                                </Button>
+                                {isFilterOpen && (
+                                    <div className="glass-panel dropdown-menu" style={{ position: 'absolute', top: '100%', right: 0, zIndex: 10, background: 'white', padding: '0.5rem', minWidth: '150px' }}>
+                                        {['All', 'User', 'Reporter', 'Admin'].map(r => (
+                                            <div key={r} onClick={() => { setFilterRole(r); setIsFilterOpen(false); }} style={{ padding: '8px', cursor: 'pointer' }}>{r}</div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                )}
-            </div>
 
-            {/* Table */}
-            {activeTab === 'Moderation Reports' ? (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Target Content</TableHead>
-                            <TableHead>Reporter</TableHead>
-                            <TableHead>Severity</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {reports.length > 0 ? reports.map(report => (
-                            <TableRow key={report._id} className="animate-slide-up" style={{ transition: 'background 0.2s', cursor: 'default' }}>
-                                <TableCell><div style={getBadgeStyle(report.type)}>{report.type}</div></TableCell>
-                                <TableCell><span style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{report.targetContent}</span></TableCell>
-                                <TableCell><span style={{ color: '#475569' }}>{report.reporter}</span></TableCell>
-                                <TableCell><div style={getBadgeStyle(report.severity)}>{report.severity}</div></TableCell>
-                                <TableCell><div style={getBadgeStyle(report.status)}>{report.status}</div></TableCell>
-                                <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatDate(report.createdAt)}</span></TableCell>
-                                <TableCell>
-                                    <div style={{ display: 'flex', gap: '0.6rem' }}>
-                                        {report.status === 'Pending' && (
-                                            <>
-                                                <Button size="sm" variant="success" onClick={() => handleReportAction(report._id, 'Resolved')} style={{ borderRadius: '8px' }}>Resolve</Button>
-                                                <Button size="sm" variant="outline" className="text-danger" onClick={() => handleDeleteTarget(report)} style={{ borderRadius: '8px' }}>Delete</Button>
-                                            </>
-                                        )}
-                                        {report.status !== 'Pending' && <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontStyle: 'italic' }}>Managed</span>}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow><TableCell colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No reports found.</TableCell></TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Mobile</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Created Date</TableHead>
-                            <TableHead>Last Login</TableHead>
-                            <TableHead>Logins</TableHead>
-                            {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableHead>Articles</TableHead>}
-                            {(initialRole === 'Admin' || initialRole === 'All') && <TableHead>User ID</TableHead>}
-                            {activeTab === 'Reporter Requests' && <TableHead>Verification</TableHead>}
-                            <TableHead>Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredData.length > 0 ? filteredData.map((user, idx) => (
-                            <TableRow
-                                key={user._id}
-                                className="animate-slide-up"
-                                style={{
-                                    transition: 'all 0.3s ease',
-                                    animationDelay: `${idx * 0.05}s`
-                                }}
-                            >
-                                <TableCell>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{
-                                            width: '40px', height: '40px', borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            color: '#1e293b', fontWeight: 700, fontSize: '0.9rem',
-                                            overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                                        }}>
-                                            {user.profilePicture ? <img src={user.profilePicture} alt="avt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.fullName?.[0]?.toUpperCase() || 'U'}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{user.fullName}</div>
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{user.role}</div>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell><span style={{ color: '#334155' }}>{user.email}</span></TableCell>
-                                <TableCell><div style={getBadgeStyle(user.role)}>{user.role}</div></TableCell>
-                                <TableCell><span style={{ color: '#64748b', fontFamily: 'monospace' }}>{user.phone || '—'}</span></TableCell>
-                                <TableCell><div style={getBadgeStyle(user.status)}>{user.status}</div></TableCell>
-                                <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatDate(user.createdAt)}</span></TableCell>
-                                <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{user.lastLogin ? new Date(user.lastLogin).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Never'}</span></TableCell>
-                                <TableCell><span style={{ color: '#1e293b', fontWeight: 600, background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>{user.loginCount || 0}</span></TableCell>
-                                {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableCell>{user.articlesCount || 0}</TableCell>}
-                                {(initialRole === 'Admin' || initialRole === 'All') && <TableCell><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600, color: '#2563eb' }}>{user.customId || user._id.slice(-6)}</span></TableCell>}
-                                {activeTab === 'Reporter Requests' && <TableCell><Badge variant={getStatusColor(user.documents?.verificationStatus || 'Pending')}>{user.documents?.verificationStatus || 'Not Applied'}</Badge></TableCell>}
-                                <TableCell>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <Button size="sm" variant="ghost" onClick={() => openProfileModal(user)} title="View Profile"><Eye size={16} /></Button>
-                                        {(initialRole === 'Admin' || initialRole === 'Reporter') && activeTab !== 'Reporter Requests' && (
-                                            <Button size="sm" variant="ghost" title="Edit" onClick={() => openEditModal(user)}><Edit size={16} /></Button>
-                                        )}
-                                        <Button size="sm" variant="ghost" className={user.status === 'Active' ? 'text-danger' : 'text-success'} onClick={() => handleAction(user._id, user.status === 'Active' ? 'block' : 'activate')} title={user.status === 'Active' ? "Deactivate" : "Activate"}><Power size={16} /></Button>
-                                        {activeTab === 'Reporter Requests' && <Button size="sm" variant="outline" onClick={() => openVerifyModal(user)}><FileText size={16} style={{ marginRight: 4 }} /> Verify</Button>}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow><TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No users found.</TableCell></TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                    {/* Table */}
+                    {activeTab === 'Moderation Reports' ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Target Content</TableHead>
+                                    <TableHead>Reporter</TableHead>
+                                    <TableHead>Severity</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {reports.length > 0 ? reports.map(report => (
+                                    <TableRow key={report._id} className="animate-slide-up" style={{ transition: 'background 0.2s', cursor: 'default' }}>
+                                        <TableCell><div style={getBadgeStyle(report.type)}>{report.type}</div></TableCell>
+                                        <TableCell><span style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{report.targetContent}</span></TableCell>
+                                        <TableCell><span style={{ color: '#475569' }}>{report.reporter}</span></TableCell>
+                                        <TableCell><div style={getBadgeStyle(report.severity)}>{report.severity}</div></TableCell>
+                                        <TableCell><div style={getBadgeStyle(report.status)}>{report.status}</div></TableCell>
+                                        <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatDate(report.createdAt)}</span></TableCell>
+                                        <TableCell>
+                                            <div style={{ display: 'flex', gap: '0.6rem' }}>
+                                                {report.status === 'Pending' && (
+                                                    <>
+                                                        <Button size="sm" variant="success" onClick={() => handleReportAction(report._id, 'Resolved')} style={{ borderRadius: '8px' }}>Resolve</Button>
+                                                        <Button size="sm" variant="outline" className="text-danger" onClick={() => handleDeleteTarget(report)} style={{ borderRadius: '8px' }}>Delete</Button>
+                                                    </>
+                                                )}
+                                                {report.status !== 'Pending' && <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontStyle: 'italic' }}>Managed</span>}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No reports found.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Mobile</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Created Date</TableHead>
+                                    <TableHead>Last Login</TableHead>
+                                    <TableHead>Logins</TableHead>
+                                    {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableHead>Articles</TableHead>}
+                                    {(initialRole === 'Admin' || initialRole === 'All') && <TableHead>User ID</TableHead>}
+                                    {activeTab === 'Reporter Requests' && <TableHead>Verification</TableHead>}
+                                    <TableHead>Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredData.length > 0 ? filteredData.map((user, idx) => (
+                                    <TableRow
+                                        key={user._id}
+                                        className="animate-slide-up"
+                                        style={{
+                                            transition: 'all 0.3s ease',
+                                            animationDelay: `${idx * 0.05}s`
+                                        }}
+                                    >
+                                        <TableCell>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    width: '40px', height: '40px', borderRadius: '12px',
+                                                    background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    color: '#1e293b', fontWeight: 700, fontSize: '0.9rem',
+                                                    overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                                }}>
+                                                    {user.profilePicture ? <img src={user.profilePicture} alt="avt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.fullName?.[0]?.toUpperCase() || 'U'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{user.fullName}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{user.role}</div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell><span style={{ color: '#334155' }}>{user.email}</span></TableCell>
+                                        <TableCell><div style={getBadgeStyle(user.role)}>{user.role}</div></TableCell>
+                                        <TableCell><span style={{ color: '#64748b', fontFamily: 'monospace' }}>{user.phone || '—'}</span></TableCell>
+                                        <TableCell><div style={getBadgeStyle(user.status)}>{user.status}</div></TableCell>
+                                        <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatDate(user.createdAt)}</span></TableCell>
+                                        <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{user.lastLogin ? new Date(user.lastLogin).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Never'}</span></TableCell>
+                                        <TableCell><span style={{ color: '#1e293b', fontWeight: 600, background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>{user.loginCount || 0}</span></TableCell>
+                                        {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableCell>{user.articlesCount || 0}</TableCell>}
+                                        {(initialRole === 'Admin' || initialRole === 'All') && <TableCell><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600, color: '#2563eb' }}>{user.customId || user._id.slice(-6)}</span></TableCell>}
+                                        {activeTab === 'Reporter Requests' && <TableCell><Badge variant={getStatusColor(user.documents?.verificationStatus || 'Pending')}>{user.documents?.verificationStatus || 'Not Applied'}</Badge></TableCell>}
+                                        <TableCell>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <Button size="sm" variant="ghost" onClick={() => openProfileView(user)} title="View Profile"><Eye size={16} /></Button>
+                                                {(initialRole === 'Admin' || initialRole === 'Reporter') && activeTab !== 'Reporter Requests' && (
+                                                    <Button size="sm" variant="ghost" title="Edit" onClick={() => openEditModal(user)}><Edit size={16} /></Button>
+                                                )}
+                                                <Button size="sm" variant="ghost" className={user.status === 'Active' ? 'text-danger' : 'text-success'} onClick={() => handleAction(user._id, user.status === 'Active' ? 'block' : 'activate')} title={user.status === 'Active' ? "Deactivate" : "Activate"}><Power size={16} /></Button>
+                                                {activeTab === 'Reporter Requests' && <Button size="sm" variant="outline" onClick={() => openVerifyModal(user)}><FileText size={16} style={{ marginRight: 4 }} /> Verify</Button>}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No users found.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </>
             )}
 
             {/* ADD USER MODAL */}
@@ -583,15 +587,13 @@ export default function UserManagement({ initialRole = 'All' }) {
                 {renderUserForm(true)}
             </Modal>
 
-            {/* USER PROFILE MODAL */}
-            <Modal
-                isOpen={!!selectedUser && !isAddUserOpen && !isEditUserOpen && !isVerifyModalOpen}
-                onClose={() => setSelectedUser(null)}
-                title="User Profile Insights"
-                className="glass-modal"
-            >
-                {selectedUser && (
-                    <div style={{ padding: '0.5rem', maxHeight: '80vh', overflowY: 'auto' }} className="animate-fade-in">
+            {/* USER PROFILE VIEW (INLINE) */}
+            {viewMode === 'details' && selectedUser && (
+                <div className="animate-fade-in" style={{ paddingBottom: '2rem' }}>
+                    <Button variant="ghost" onClick={() => { setViewMode('list'); setSelectedUser(null); }} style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b' }}>
+                        <ArrowLeft size={18} /> Back to Users
+                    </Button>
+                    <div style={{ padding: '0.5rem' }}>
                         {/* Header Profile Section */}
                         <div style={{
                             background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
@@ -950,8 +952,8 @@ export default function UserManagement({ initialRole = 'All' }) {
                             )}
                         </div>
                     </div>
-                )}
-            </Modal>
+                </div>
+            )}
 
             {/* Verify Reporter Modal */}
             <Modal isOpen={isVerifyModalOpen} onClose={() => setIsVerifyModalOpen(false)} title="Verify Reporter Credentials">

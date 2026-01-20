@@ -86,6 +86,7 @@ export const saveContentAPI = (data) => API.post('/users/me/saved', data);
 export const getDashboardAnalyticsAPI = () => API.get('/analytics/dashboard');
 export const getReportsAnalyticsAPI = () => API.get('/analytics/reports');
 export const getUserAnalyticsAPI = (id) => API.get(`/analytics/user/${id}`);
+export const getNewsAnalyticsAPI = (id) => API.get(`/analytics/news/${id}`);
 
 // Community Management
 export const sendEmailVerificationAPI = (data) => API.post('/communities/verify-email/send', data);

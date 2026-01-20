@@ -732,11 +732,11 @@ export default function CommunityManagement() {
                                                     <input
                                                         type="text"
                                                         placeholder="OTP"
-                                                        id={`otp-input-${invite.userId}`}
+                                                        id={`otp-input-${invite._id}`}
                                                         style={{ width: '80px', padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '0.875rem' }}
                                                     />
                                                     <Button size="sm" onClick={() => {
-                                                        const val = document.getElementById(`otp-input-${invite.userId}`).value;
+                                                        const val = document.getElementById(`otp-input-${invite._id}`).value;
                                                         handleApproveAuthorizedInvite(invite.userId, val);
                                                     }}>
                                                         Verify
