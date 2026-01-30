@@ -28,10 +28,10 @@ export default function CaseStudyManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (_id) => {
         if (confirm('Are you sure you want to delete this case study?')) {
             try {
-                await deleteCaseStudyAPI(id);
+                await deleteCaseStudyAPI(_id);
                 fetchCaseStudies();
             } catch (error) {
                 console.error("Delete Case Study Error:", error);
@@ -126,6 +126,8 @@ export default function CaseStudyManagement() {
                         <TableHead>Author</TableHead>
                         <TableHead>Views</TableHead>
                         <TableHead>Likes</TableHead>
+                        <TableHead>Comments</TableHead>
+                        <TableHead>Shares</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
@@ -144,8 +146,10 @@ export default function CaseStudyManagement() {
                                 </div>
                             </TableCell>
                             <TableCell>{item.author?.fullName || 'Admin'}</TableCell>
-                            <TableCell>{item.views || 0}</TableCell>
-                            <TableCell>{item.likes || 0}</TableCell>
+                            <TableCell>{item.viewsCount}</TableCell>
+                            <TableCell>{item.likesCount}</TableCell>
+                            <TableCell>{item.commentsCount}</TableCell>
+                            <TableCell>{item.sharesCount}</TableCell>
                             <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                                 <Button variant="ghost" size="sm" className="text-danger" onClick={() => handleDelete(item._id)}>

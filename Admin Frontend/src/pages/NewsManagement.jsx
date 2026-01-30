@@ -36,7 +36,9 @@ export default function NewsManagement() {
         try {
             setLoading(true);
             const res = await getNewsAPI();
-            setNews(res.data);
+            
+            
+            setNews(res.data);  
         } catch (error) {
             console.error("Fetch News Error:", error);
         } finally {
@@ -71,10 +73,10 @@ export default function NewsManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (_id) => {
         if (confirm('Are you sure you want to delete this article?')) {
             try {
-                await deleteNewsAPI(id);
+                await deleteNewsAPI(_id);
                 fetchNews();
             } catch (error) {
                 console.error("Delete News Error:", error);
@@ -315,7 +317,7 @@ export default function NewsManagement() {
                 size="lg"
             >
                 {selectedArticle && (
-                    <div>
+                    <div >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                             <Badge variant={getStatusVariant(selectedArticle)}>{getStatusLabel(selectedArticle)}</Badge>
                             <span style={{ color: '#64748b', fontSize: '12px' }}>{new Date(selectedArticle.date).toLocaleString()}</span>

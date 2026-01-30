@@ -36,8 +36,6 @@ const navItems = [
     { label: 'News Management', path: '/news', icon: Newspaper },
     { label: 'Communities', path: '/communities', icon: UsersRound },
     { label: 'Reporter Events', path: '/events', icon: Calendar },
-    { label: 'My Activity', path: '/my-activity', icon: Clock },
-    { label: 'Saved Content', path: '/saved', icon: Bookmark },
     { label: 'Insights & Controls', path: '/moderation', icon: FlagTriangleRight },
     { label: 'Case Studies', path: '/casestudies', icon: BookOpen },
     { label: 'Settings', path: '/settings', icon: Settings },

@@ -498,7 +498,7 @@ export default function UserManagement({ initialRole = 'All' }) {
                                         </TableCell>
                                     </TableRow>
                                 )) : (
-                                    <TableRow><TableCell colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No reports found.</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={7} style={{ textAlign: 'center', alignItems: 'center', padding: '2rem', color: '#64748b' }}>No reports found.</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>
@@ -508,12 +508,9 @@ export default function UserManagement({ initialRole = 'All' }) {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
-                                    <TableHead>Role</TableHead>
                                     <TableHead>Mobile</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Created Date</TableHead>
-                                    <TableHead>Last Login</TableHead>
-                                    <TableHead>Logins</TableHead>
                                     {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableHead>Articles</TableHead>}
                                     {(initialRole === 'Admin' || initialRole === 'All') && <TableHead>User ID</TableHead>}
                                     {activeTab === 'Reporter Requests' && <TableHead>Verification</TableHead>}
@@ -548,13 +545,10 @@ export default function UserManagement({ initialRole = 'All' }) {
                                             </div>
                                         </TableCell>
                                         <TableCell><span style={{ color: '#334155' }}>{user.email}</span></TableCell>
-                                        <TableCell><div style={getBadgeStyle(user.role)}>{user.role}</div></TableCell>
                                         <TableCell><span style={{ color: '#64748b', fontFamily: 'monospace' }}>{user.phone || '—'}</span></TableCell>
                                         <TableCell><div style={getBadgeStyle(user.status)}>{user.status}</div></TableCell>
                                         <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatDate(user.createdAt)}</span></TableCell>
-                                        <TableCell><span style={{ color: '#64748b', fontSize: '0.85rem' }}>{user.lastLogin ? new Date(user.lastLogin).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Never'}</span></TableCell>
-                                        <TableCell><span style={{ color: '#1e293b', fontWeight: 600, background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>{user.loginCount || 0}</span></TableCell>
-                                        {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableCell>{user.articlesCount || 0}</TableCell>}
+                                         {initialRole === 'Reporter' && activeTab !== 'Reporter Requests' && <TableCell>{user.articlesCount || 0}</TableCell>}
                                         {(initialRole === 'Admin' || initialRole === 'All') && <TableCell><span style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600, color: '#2563eb' }}>{user.customId || user._id.slice(-6)}</span></TableCell>}
                                         {activeTab === 'Reporter Requests' && <TableCell><Badge variant={getStatusColor(user.documents?.verificationStatus || 'Pending')}>{user.documents?.verificationStatus || 'Not Applied'}</Badge></TableCell>}
                                         <TableCell>
@@ -627,7 +621,7 @@ export default function UserManagement({ initialRole = 'All' }) {
                             background: '#f1f5f9', padding: '6px', borderRadius: '12px',
                             overflowX: 'auto', whiteSpace: 'nowrap'
                         }}>
-                            {['Performance', 'Overview', 'Communities', 'Interests', 'Activity', 'Saved', 'Security', 'Performance'].filter((v, i, a) => a.indexOf(v) === i && v !== 'Performance').concat(['Performance']).reverse().filter((v, i, a) => a.indexOf(v) === i).reverse().map(tab => (
+                            {['Performance', 'Overview', 'Communities', 'Interests', 'Activity', 'Saved', 'Performance'].filter((v, i, a) => a.indexOf(v) === i && v !== 'Performance').concat(['Performance']).reverse().filter((v, i, a) => a.indexOf(v) === i).reverse().map(tab => (
                                 <div
                                     key={tab}
                                     onClick={() => setProfileTab(tab)}
@@ -850,62 +844,75 @@ export default function UserManagement({ initialRole = 'All' }) {
                             )}
 
                             {profileTab === 'Interests' && (
-                                <div className="animate-fade-in" style={{ textAlign: 'center', padding: '2rem 0' }}>
-                                    <div style={{ marginBottom: '1.5rem', color: '#1e293b', fontWeight: 600 }}>Preferred Topics & Interests</div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', justifyContent: 'center' }}>
-                                        {selectedUser.interests?.length > 0 ? selectedUser.interests.map(interest => (
-                                            <div key={interest} style={{
-                                                padding: '8px 16px', borderRadius: '30px', background: 'white',
-                                                border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                                                display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#334155'
-                                            }}>
-                                                <Hash size={14} />
-                                                {interest}
-                                            </div>
-                                        )) : (
-                                            <div style={{ color: '#94a3b8' }}>No specific interests selected.</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                               <div
+  className="animate-fade-in"
+  style={{
+    textAlign: "center",
+    padding: "2rem",
+    background: "#f8fafc",
+    borderRadius: "16px"
+  }}
+>
+  {/* Title */}
+  <h3
+    style={{
+      marginBottom: "1.5rem",
+      color: "#0f172a",
+      fontWeight: 600,
+      fontSize: "1.1rem"
+    }}
+  >
+    Preferred Topics & Interests
+  </h3>
 
-                            {profileTab === 'Security' && (
-                                <div className="animate-fade-in">
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-                                        <div className="glass-card" style={{ padding: '1.2rem', background: '#fef2f2', borderColor: '#fee2e2' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                                <ShieldAlert size={18} color="#ef4444" />
-                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#991b1b' }}>Failed Logins</span>
-                                            </div>
-                                            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#7f1d1d' }}>{selectedUser.failedLoginAttempts || 0}</div>
-                                        </div>
-                                        <div className="glass-card" style={{ padding: '1.2rem', background: '#f0f9ff', borderColor: '#e0f2fe' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                                <Lock size={18} color="#0284c7" />
-                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#075985' }}>Login History</span>
-                                            </div>
-                                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0c4a6e' }}>{selectedUser.loginCount || 0} sessions</div>
-                                            <div style={{ fontSize: '0.7rem', color: '#0369a1', marginTop: '4px' }}>Last: {selectedUser.lastLogin ? formatDate(selectedUser.lastLogin) : 'Never'}</div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <Key size={16} /> Password Resets
-                                        </div>
-                                        {selectedUser.passwordResetHistory?.length > 0 ? (
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                                {selectedUser.passwordResetHistory.map((date, i) => (
-                                                    <div key={i} style={{ padding: '8px 12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #f1f5f9', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
-                                                        <span>Reset Event</span>
-                                                        <span style={{ fontWeight: 600 }}>{formatDate(date)}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>No resets found.</div>
-                                        )}
-                                    </div>
-                                </div>
+  {/* Interests */}
+  <div
+    style={{
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "0.75rem",
+      justifyContent: "center"
+    }}
+  >
+    {selectedUser?.interests?.length > 0 ? (
+      selectedUser.interests.map((interest, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 18px",
+            borderRadius: "999px",
+            background: "linear-gradient(135deg, #e0f2fe, #f0f9ff)",
+            color: "#0369a1",
+            fontSize: "0.9rem",
+            fontWeight: 500,
+            border: "1px solid #bae6fd",
+            boxShadow: "0 4px 10px rgba(2,132,199,0.08)",
+            cursor: "default"
+          }}
+        >
+          <Hash size={14} />
+          <span style={{ textTransform: "capitalize" }}>
+            {interest}
+          </span>
+        </div>
+      ))
+    ) : (
+      <div
+        style={{
+          color: "#94a3b8",
+          fontSize: "0.95rem",
+          padding: "0.5rem"
+        }}
+      >
+        No interests selected
+      </div>
+    )}
+  </div>
+</div>
+
                             )}
 
                             {profileTab === 'Activity' && (
@@ -962,6 +969,12 @@ export default function UserManagement({ initialRole = 'All' }) {
                         <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
                             <h3 style={{ margin: '0 0 0.5rem 0' }}>{selectedUser.fullName}</h3>
                             <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Review the reporter credentials and history before granting access.</p>
+                            <div>
+                                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#1e293b' }}>Aadhaar Number: {selectedUser.documents.aadhaarNumber}</h2>
+                                <h2 style={{ fontSize: '1rem', fontWeight: 500, color: '#3b82f6' }}>PAN Number: {selectedUser.documents.panNumber}</h2>
+                                <h2 style={{ fontSize: '1rem', fontWeight: 500, color: '#777f8d' }}>DOB Match: {selectedUser.documents.panDOB===selectedUser.documents.aadhaarDOB?selectedUser.documents.panDOB:"DOB Mismatch"}</h2>
+
+                            </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                             <Button variant="outline" className="text-danger" onClick={() => handleVerifyAction('Rejected')}>Reject</Button>

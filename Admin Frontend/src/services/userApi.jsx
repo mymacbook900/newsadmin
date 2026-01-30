@@ -49,7 +49,7 @@ export const shareNewsAPI = (id) => API.patch(`/news/${id}/share`);
 // Case Study API
 export const getCaseStudiesAPI = () => API.get('/casestudies');
 export const createCaseStudyAPI = (data) => API.post('/casestudies', data);
-export const deleteCaseStudyAPI = (id) => API.delete(`/casestudies/${id}`); // Assuming delete is needed
+export const deleteCaseStudyAPI = (id) => API.delete(`/casestudies/${id}`);// Assuming delete is needed
 export const getCaseStudyByIdAPI = (id) => API.get(`/casestudies/${id}`);
 
 // Settings API
@@ -94,7 +94,7 @@ export const verifyDomainEmailAPI = (data) => API.post('/communities/verify-emai
 export const inviteAuthorizedPersonAPI = (id, data) => API.post(`/communities/${id}/invite-authorized`, data);
 export const approveAuthorizedInviteAPI = (data) => API.post('/communities/authorized/approve', data);
 export const followCommunityAPI = (id) => API.post(`/communities/${id}/follow`);
-export const unfollowCommunityAPI = (id) => API.delete(`/communities/${id}/follow`);
+export const unfollowCommunityAPI = (id) => API.delete(`/communities/${id}/unfollow`);
 export const joinCommunityAPI = (id) => API.post(`/communities/${id}/join`);
 export const approveJoinRequestAPI = (data) => API.post('/communities/request/approve', data);
 export const rejectJoinRequestAPI = (data) => API.post('/communities/request/reject', data);

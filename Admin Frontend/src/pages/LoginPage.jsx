@@ -21,7 +21,18 @@ export default function LoginPage() {
         try {
             const res = await loginUserAPI({ email, password });
 
-            // Success logic
+            // ✅ CRITICAL: Check if user has admin role
+            if (res.data.user.role !== 'Admin') {
+                setError('Access Denied! Only Admin users can access this portal.');
+                setIsLoading(false);
+                // Clear any previous login data
+                localStorage.removeItem('token');
+                localStorage.removeItem('isAdminAuthenticated');
+                localStorage.removeItem('adminUser');
+                return;
+            }
+
+            // Success logic - Only for Admin users
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('isAdminAuthenticated', 'true');
             localStorage.setItem('adminUser', JSON.stringify({
